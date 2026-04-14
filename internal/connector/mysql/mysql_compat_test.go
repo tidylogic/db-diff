@@ -1,3 +1,5 @@
+//go:build integration
+
 package mysql_test
 
 import (
@@ -5,6 +7,7 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/testcontainers/testcontainers-go"
 	tc_mysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 
 	"db-diff/internal/connector/mysql"
@@ -37,6 +40,7 @@ var mysqlSetupStatements = []string{
 
 func TestCompatibility(t *testing.T) {
 	t.Parallel()
+	testcontainers.SkipIfProviderIsNotHealthy(t)
 
 	tests := []struct {
 		name  string

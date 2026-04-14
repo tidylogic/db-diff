@@ -374,14 +374,23 @@ Integration tests using Testcontainers spin up real database containers and veri
 
 All version subtests run in parallel. Docker must be available on the host.
 
-```bash
-# Run all compatibility tests (requires Docker)
-go test -v -timeout 15m ./internal/connector/...
+Container-based tests use the `integration` build tag and are excluded from
+the default `go test ./...` run. To run them you must pass `-tags integration`:
 
-# Run a specific database only
-go test -v -timeout 10m ./internal/connector/mysql/
-go test -v -timeout 10m ./internal/connector/postgres/
+```bash
+# Run all integration tests (requires Docker)
+go test -v -timeout 20m -tags integration ./...
+
+# Run only connector compatibility tests
+go test -v -timeout 15m -tags integration ./internal/connector/...
+
+# Run only migration integration tests
+go test -v -timeout 15m -tags integration ./internal/migrate/...
 ```
+
+> **CI / GitHub Actions**: The default CI run (`go test ./...`) excludes
+> container tests via the `integration` build tag, keeping CI fast and
+> Docker-free. Run `go test -tags integration` locally with Docker available.
 
 ## License
 
@@ -404,10 +413,11 @@ MIT License - See [LICENSE](LICENSE) for details
 - Interactive migration SQL builder with per-item selection
 - Dark / Light / System theme toggle
 
-### Phase 4 (Stability) Planned
-- Integrated test automation
-- Multi-version DBMS compatibility validation
-- User documentation and tutorials
+### Phase 4 (Stability) ✓
+- Unit tests for comparison engine (`internal/diff`) and migration SQL generator (`internal/migrate`)
+- Integration tests for migration SQL against real MySQL 5.7/8.0/8.4 and PostgreSQL 13–17 using testcontainers
+- Go `POST /api/migrate` endpoint — TypeScript SQL generation removed; all DDL generation consolidated in Go
+- Fixed `execSQL` test helper to correctly execute SQL statements that follow comment headers
 
 ## Troubleshooting
 

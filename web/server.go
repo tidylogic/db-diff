@@ -3,12 +3,15 @@ package web
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
-	"strings"
+
+	"db-diff/internal/diff"
+	"db-diff/internal/migrate"
 )
 
 //go:embed all:static
@@ -23,6 +26,9 @@ type Server struct {
 func (s *Server) ListenAndServe() error {
 	mux := http.NewServeMux()
 
+	// API endpoints (registered before the static file catch-all)
+	mux.HandleFunc("POST /api/migrate", s.handleMigrate)
+
 	// Serve static files from the embedded FS (or a local override for dev).
 	staticFS := resolveStaticFS()
 	mux.Handle("/", http.FileServer(http.FS(staticFS)))
@@ -32,6 +38,46 @@ func (s *Server) ListenAndServe() error {
 
 	return http.ListenAndServe(addr, mux)
 }
+
+// ── /api/migrate ──────────────────────────────────────────────────────────────
+
+type migrateRequest struct {
+	Diff      diff.DiffResult   `json:"diff"`
+	Selection migrate.Selection `json:"selection"`
+	Direction string            `json:"direction"`
+	Dialect   string            `json:"dialect"`
+}
+
+type migrateResponse struct {
+	SQL string `json:"sql"`
+}
+
+type errorResponse struct {
+	Error string `json:"error"`
+}
+
+func (s *Server) handleMigrate(w http.ResponseWriter, r *http.Request) {
+	var req migrateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(errorResponse{Error: "invalid request body: " + err.Error()})
+		return
+	}
+
+	sql, err := migrate.GenerateFiltered(&req.Diff, req.Selection, req.Direction, req.Dialect)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(errorResponse{Error: err.Error()})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(migrateResponse{SQL: sql})
+}
+
+// ── static file serving ───────────────────────────────────────────────────────
 
 // resolveStaticFS returns an FS that serves static assets.
 //
@@ -54,10 +100,4 @@ func resolveStaticFS() fs.FS {
 		panic(fmt.Sprintf("web: failed to sub embedded static FS: %v", err))
 	}
 	return sub
-}
-
-// IsSPARequest returns true for paths that should fall back to index.html
-// (all paths that don't look like asset requests).
-func isSPARequest(path string) bool {
-	return !strings.Contains(path, ".")
 }
