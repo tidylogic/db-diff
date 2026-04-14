@@ -1,5 +1,7 @@
 # db-diff
 
+[![CI](https://github.com/tidylogic/db-diff/actions/workflows/ci.yml/badge.svg)](https://github.com/tidylogic/db-diff/actions/workflows/ci.yml)
+
 **데이터베이스 스키마 비교 도구** - MySQL과 PostgreSQL 간의 데이터베이스 스키마 차이를 빠르고 정확하게 비교합니다.
 
 🇬🇧 [English Documentation](README.md)
@@ -363,10 +365,22 @@ go build -o db-diff ./cmd/db-diff
 
 ### 테스트
 
-Testcontainers를 활용하여 실제 MySQL/PostgreSQL 환경에서 통합 테스트 수행:
+Testcontainers를 활용하여 실제 데이터베이스 컨테이너를 실행하고 여러 메이저 버전에서 스키마 추출을 검증합니다:
+
+| 데이터베이스 | 테스트 버전           |
+|--------------|-----------------------|
+| MySQL        | 5.7, 8.0, 8.4         |
+| PostgreSQL   | 13, 14, 15, 16, 17    |
+
+모든 버전 서브테스트는 병렬로 실행됩니다. 호스트에 Docker가 설치되어 있어야 합니다.
 
 ```bash
-go test -v ./internal/connector/...
+# 전체 호환성 테스트 실행 (Docker 필요)
+go test -v -timeout 15m ./internal/connector/...
+
+# 특정 데이터베이스만 실행
+go test -v -timeout 10m ./internal/connector/mysql/
+go test -v -timeout 10m ./internal/connector/postgres/
 ```
 
 ## 라이센스
