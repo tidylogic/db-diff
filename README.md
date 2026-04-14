@@ -2,6 +2,8 @@
 
 **Database Schema Comparison Tool** - Quickly and accurately compare database schemas between MySQL and PostgreSQL environments.
 
+🇰🇷 [한국어 문서 보기](README-ko.md)
+
 ## Overview
 
 `db-diff` is a CLI tool that detects and visualizes database schema differences across different environments (Dev, QA, Prod). It helps developers, DBAs, and DevOps engineers maintain database consistency.
@@ -20,11 +22,29 @@
 ### Prerequisites
 - Go 1.26 or later
 
-### Build
+### Option 1: Using `go install`
 
 ```bash
+go install github.com/tidylogic/db-diff/cmd/db-diff@latest
+```
+
+The binary will be installed in `$GOPATH/bin/db-diff` (typically `$HOME/go/bin/db-diff`).
+
+Make sure `$GOPATH/bin` is in your `$PATH`:
+```bash
+# Add to ~/.bashrc, ~/.zshrc, or your shell config
+export PATH=$PATH:$HOME/go/bin
+```
+
+### Option 2: Build from Source
+
+```bash
+git clone https://github.com/tidylogic/db-diff.git
+cd db-diff
 go build -o db-diff ./cmd/db-diff
 ```
+
+The binary will be created in the current directory.
 
 ### Docker (Optional)
 ```bash

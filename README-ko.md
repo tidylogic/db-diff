@@ -2,6 +2,8 @@
 
 **데이터베이스 스키마 비교 도구** - MySQL과 PostgreSQL 간의 데이터베이스 스키마 차이를 빠르고 정확하게 비교합니다.
 
+🇬🇧 [English Documentation](README.md)
+
 ## 개요
 
 `db-diff`는 서로 다른 환경(Dev, QA, Prod)의 데이터베이스 스키마 간 차이를 감지하고 시각화하는 CLI 도구입니다. 개발자, DBA, DevOps 엔지니어가 데이터베이스 일관성을 유지하는 데 도움을 줍니다.
@@ -20,11 +22,29 @@
 ### 사전 요구사항
 - Go 1.26 이상
 
-### 빌드
+### 방법 1: `go install` 사용 (권장)
 
 ```bash
+go install github.com/tidylogic/db-diff/cmd/db-diff@latest
+```
+
+바이너리가 `$GOPATH/bin/db-diff` (일반적으로 `$HOME/go/bin/db-diff`)에 설치됩니다.
+
+`$GOPATH/bin`이 PATH에 포함되어 있는지 확인하세요:
+```bash
+# ~/.bashrc, ~/.zshrc, 또는 셸 설정 파일에 추가
+export PATH=$PATH:$HOME/go/bin
+```
+
+### 방법 2: 소스에서 빌드
+
+```bash
+git clone https://github.com/tidylogic/db-diff.git
+cd db-diff
 go build -o db-diff ./cmd/db-diff
 ```
+
+바이너리가 현재 디렉토리에 생성됩니다.
 
 ### Docker (옵션)
 ```bash
