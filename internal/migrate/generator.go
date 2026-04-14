@@ -194,8 +194,6 @@ func columnStmt(table string, cd diff.ColumnDiff, change diff.ChangeType, direct
 }
 
 func indexStmt(table string, id diff.IndexDiff, change diff.ChangeType, dialect string) string {
-	t := quoteIdent(table, dialect)
-
 	var idx *schema.Index
 	switch change {
 	case diff.Added:
@@ -215,9 +213,9 @@ func indexStmt(table string, id diff.IndexDiff, change diff.ChangeType, dialect 
 
 	switch change {
 	case diff.Added:
-		return createIndexStmt(t, idx, dialect)
+		return createIndexStmt(table, idx, dialect)
 	case diff.Removed:
-		return dropIndexStmt(t, idx, dialect)
+		return dropIndexStmt(table, idx, dialect)
 	}
 	return ""
 }
@@ -352,6 +350,80 @@ func quoteIdent(name, dialect string) string {
 	default: // mysql and others
 		return "`" + strings.ReplaceAll(name, "`", "``") + "`"
 	}
+}
+
+// ── Selection / GenerateFiltered ──────────────────────────────────────────────
+
+// Selection describes which items from a DiffResult to include when generating
+// migration SQL. For modified tables, an absent key in Columns/Indexes/Constraints
+// means "include all items for that table".
+type Selection struct {
+	Tables      []string            `json:"tables"`
+	Columns     map[string][]string `json:"columns"`
+	Indexes     map[string][]string `json:"indexes"`
+	Constraints map[string][]string `json:"constraints"`
+	Views       []string            `json:"views"`
+}
+
+// GenerateFiltered generates migration SQL for only the items named in sel.
+// It builds a filtered copy of result and delegates to Generate.
+func GenerateFiltered(result *diff.DiffResult, sel Selection, direction, dialect string) (string, error) {
+	tableSet := toStringSet(sel.Tables)
+	viewSet := toStringSet(sel.Views)
+
+	filtered := &diff.DiffResult{
+		SourceName: result.SourceName,
+		TargetName: result.TargetName,
+	}
+
+	for _, td := range result.Tables {
+		if !tableSet[td.Name] {
+			continue
+		}
+		if td.Change != diff.Modified {
+			// Added/Removed tables: include as-is when selected.
+			filtered.Tables = append(filtered.Tables, td)
+			continue
+		}
+		// Modified table: filter sub-items.
+		colSet := toStringSet(sel.Columns[td.Name])
+		idxSet := toStringSet(sel.Indexes[td.Name])
+		conSet := toStringSet(sel.Constraints[td.Name])
+
+		ftd := diff.TableDiff{Name: td.Name, Change: td.Change}
+		for _, cd := range td.Columns {
+			if len(colSet) == 0 || colSet[cd.Name] {
+				ftd.Columns = append(ftd.Columns, cd)
+			}
+		}
+		for _, id := range td.Indexes {
+			if len(idxSet) == 0 || idxSet[id.Name] {
+				ftd.Indexes = append(ftd.Indexes, id)
+			}
+		}
+		for _, cd := range td.Constraints {
+			if len(conSet) == 0 || conSet[cd.Name] {
+				ftd.Constraints = append(ftd.Constraints, cd)
+			}
+		}
+		filtered.Tables = append(filtered.Tables, ftd)
+	}
+
+	for _, vd := range result.Views {
+		if viewSet[vd.Name] {
+			filtered.Views = append(filtered.Views, vd)
+		}
+	}
+
+	return Generate(filtered, direction, dialect)
+}
+
+func toStringSet(ss []string) map[string]bool {
+	m := make(map[string]bool, len(ss))
+	for _, s := range ss {
+		m[s] = true
+	}
+	return m
 }
 
 func ptrStrEq(a, b *string) bool {

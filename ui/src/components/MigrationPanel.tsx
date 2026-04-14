@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { DiffResult, SelectionState, Direction, Dialect } from '../types'
 import { generateSQL } from '../utils/migration'
 
@@ -13,17 +13,20 @@ interface Props {
 
 function Btn({
   active,
+  disabled,
   onClick,
   children,
 }: {
   active: boolean
+  disabled?: boolean
   onClick: () => void
   children: React.ReactNode
 }) {
   return (
     <button
       onClick={onClick}
-      className={`px-2.5 py-1 text-xs rounded transition-colors ${
+      disabled={disabled}
+      className={`px-2.5 py-1 text-xs rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
         active
           ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
           : 'text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -42,15 +45,42 @@ export function MigrationPanel({
   onDirectionChange,
   onDialectChange,
 }: Props) {
+  const [sql, setSql] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [genError, setGenError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
-  const sql = useMemo(
-    () => generateSQL(result, selection, direction, dialect),
-    [result, selection, direction, dialect],
-  )
+  useEffect(() => {
+    // Cancel any in-flight request before starting a new one
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
 
-  const isEmpty = !sql.split('\n').some((l) => l.trim() && !l.startsWith('--'))
+    setLoading(true)
+    setGenError(null)
+
+    generateSQL(result, selection, direction, dialect, controller.signal)
+      .then((s) => {
+        setSql(s)
+        setLoading(false)
+      })
+      .catch((err: unknown) => {
+        if (err instanceof Error && err.name === 'AbortError') return
+        setGenError(
+          err instanceof Error ? err.message : 'Failed to generate SQL',
+        )
+        setLoading(false)
+      })
+
+    return () => controller.abort()
+  }, [result, selection, direction, dialect])
+
+  const isEmpty =
+    !loading &&
+    !genError &&
+    !sql.split('\n').some((l) => l.trim() && !l.startsWith('--'))
 
   const handleCopy = async () => {
     try {
@@ -68,15 +98,22 @@ export function MigrationPanel({
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    const src = direction === 'source_to_target' ? result.SourceName : result.TargetName
-    const tgt = direction === 'source_to_target' ? result.TargetName : result.SourceName
-    a.download = `migrate_${src}_to_${tgt}.sql`.replace(/[^a-zA-Z0-9_.-]/g, '_')
+    const src =
+      direction === 'source_to_target' ? result.SourceName : result.TargetName
+    const tgt =
+      direction === 'source_to_target' ? result.TargetName : result.SourceName
+    a.download = `migrate_${src}_to_${tgt}.sql`.replace(
+      /[^a-zA-Z0-9_.-]/g,
+      '_',
+    )
     a.click()
     URL.revokeObjectURL(url)
   }
 
-  const srcLabel = direction === 'source_to_target' ? result.SourceName : result.TargetName
-  const tgtLabel = direction === 'source_to_target' ? result.TargetName : result.SourceName
+  const srcLabel =
+    direction === 'source_to_target' ? result.SourceName : result.TargetName
+  const tgtLabel =
+    direction === 'source_to_target' ? result.TargetName : result.SourceName
 
   return (
     <div
@@ -90,35 +127,57 @@ export function MigrationPanel({
         </span>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-gray-400 dark:text-gray-600">Direction</span>
+          <span className="text-[10px] text-gray-400 dark:text-gray-600">
+            Direction
+          </span>
           <div className="flex gap-1">
-            <Btn active={direction === 'source_to_target'} onClick={() => onDirectionChange('source_to_target')}>
+            <Btn
+              active={direction === 'source_to_target'}
+              onClick={() => onDirectionChange('source_to_target')}
+            >
               {result.SourceName} → {result.TargetName}
             </Btn>
-            <Btn active={direction === 'target_to_source'} onClick={() => onDirectionChange('target_to_source')}>
+            <Btn
+              active={direction === 'target_to_source'}
+              onClick={() => onDirectionChange('target_to_source')}
+            >
               {result.TargetName} → {result.SourceName}
             </Btn>
           </div>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-gray-400 dark:text-gray-600">Dialect</span>
+          <span className="text-[10px] text-gray-400 dark:text-gray-600">
+            Dialect
+          </span>
           <div className="flex gap-1">
-            <Btn active={dialect === 'mysql'} onClick={() => onDialectChange('mysql')}>MySQL</Btn>
-            <Btn active={dialect === 'postgres'} onClick={() => onDialectChange('postgres')}>PostgreSQL</Btn>
+            <Btn
+              active={dialect === 'mysql'}
+              onClick={() => onDialectChange('mysql')}
+            >
+              MySQL
+            </Btn>
+            <Btn
+              active={dialect === 'postgres'}
+              onClick={() => onDialectChange('postgres')}
+            >
+              PostgreSQL
+            </Btn>
           </div>
         </div>
 
         <div className="ml-auto flex gap-1.5">
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-200 dark:border-gray-700 rounded text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            disabled={loading || !!genError || isEmpty}
+            className="flex items-center gap-1 px-2.5 py-1 text-xs border border-gray-200 dark:border-gray-700 rounded text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {copied ? '✓ Copied' : 'Copy'}
           </button>
           <button
             onClick={handleDownload}
-            className="flex items-center gap-1 px-2.5 py-1 text-xs bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded hover:bg-gray-700 dark:hover:bg-gray-300 transition-colors"
+            disabled={loading || !!genError || isEmpty}
+            className="flex items-center gap-1 px-2.5 py-1 text-xs bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded hover:bg-gray-700 dark:hover:bg-gray-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Download .sql
           </button>
@@ -128,13 +187,28 @@ export function MigrationPanel({
       {/* Direction hint */}
       <div className="px-4 py-1 border-b border-gray-100 dark:border-gray-800/60 flex-shrink-0">
         <span className="text-[10px] text-gray-400 dark:text-gray-600">
-          Make <span className="text-gray-600 dark:text-gray-400">{srcLabel}</span> match <span className="text-gray-600 dark:text-gray-400">{tgtLabel}</span>
+          Make{' '}
+          <span className="text-gray-600 dark:text-gray-400">{srcLabel}</span>{' '}
+          match{' '}
+          <span className="text-gray-600 dark:text-gray-400">{tgtLabel}</span>
         </span>
       </div>
 
       {/* SQL output */}
       <div className="flex-1 relative overflow-hidden">
-        {isEmpty ? (
+        {loading ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-xs text-gray-400 dark:text-gray-600">
+              Generating…
+            </p>
+          </div>
+        ) : genError ? (
+          <div className="absolute inset-0 flex items-center justify-center px-6">
+            <p className="text-xs text-red-500 dark:text-red-400 text-center">
+              {genError}
+            </p>
+          </div>
+        ) : isEmpty ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="text-xs text-gray-300 dark:text-gray-700">
               No items selected — check tables or columns in the sidebar.

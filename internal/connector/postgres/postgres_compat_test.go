@@ -1,3 +1,5 @@
+//go:build integration
+
 package postgres_test
 
 import (
@@ -39,6 +41,7 @@ var pgSetupStatements = []string{
 
 func TestCompatibility(t *testing.T) {
 	t.Parallel()
+	testcontainers.SkipIfProviderIsNotHealthy(t)
 
 	tests := []struct {
 		name  string
