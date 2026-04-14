@@ -13,6 +13,7 @@ import (
 	"db-diff/internal/migrate"
 	"db-diff/internal/output"
 	"db-diff/internal/schema"
+	"db-diff/web"
 )
 
 func main() {
@@ -29,6 +30,7 @@ func rootCmd() *cobra.Command {
 	}
 	root.AddCommand(compareCmd())
 	root.AddCommand(versionCmd())
+	root.AddCommand(webCmd())
 	return root
 }
 
@@ -40,6 +42,23 @@ func versionCmd() *cobra.Command {
 			fmt.Println("db-diff v0.1.0")
 		},
 	}
+}
+
+func webCmd() *cobra.Command {
+	var port int
+
+	cmd := &cobra.Command{
+		Use:   "web",
+		Short: "Start the web GUI server",
+		Long:  "Launch the db-diff web GUI. Open the printed URL in your browser, then load a JSON diff file.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			srv := &web.Server{Port: port}
+			return srv.ListenAndServe()
+		},
+	}
+
+	cmd.Flags().IntVarP(&port, "port", "p", 8080, "port to listen on")
+	return cmd
 }
 
 func compareCmd() *cobra.Command {

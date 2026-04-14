@@ -18,6 +18,7 @@
 - **Selective Filtering**: Exclude specific tables or columns
 - **Automatic Migration SQL Generation**: Convert schema differences to DDL automatically
 - **YAML Configuration Support**: Manage complex comparison scenarios with config files
+- **Web GUI**: Browser-based diff viewer with interactive migration SQL builder
 
 ## Installation
 
@@ -43,6 +44,11 @@ export PATH=$PATH:$HOME/go/bin
 ```bash
 git clone https://github.com/tidylogic/db-diff.git
 cd db-diff
+
+# Build everything (frontend + backend)
+make all
+
+# Or build only the Go binary (if web/static/ is already populated)
 go build -o db-diff ./cmd/db-diff
 ```
 
@@ -53,6 +59,54 @@ The binary will be created in the current directory.
 docker build -t db-diff .
 docker run --rm db-diff compare --help
 ```
+
+## Web GUI
+
+Launch the browser-based diff viewer to visually inspect schema changes and build migration SQL interactively:
+
+```bash
+# 1. Generate a JSON diff file
+./db-diff compare \
+  --source "mysql://user:pass@host1:3306/db" \
+  --target "mysql://user:pass@host2:3306/db" \
+  --output json > diff.json
+
+# 2. Start the web server (default port 8080)
+./db-diff web
+
+# 3. Open http://localhost:8080 and load diff.json
+```
+
+```bash
+# Custom port
+./db-diff web --port 3000
+```
+
+### Building the Web UI
+
+```bash
+# Build frontend + backend in one step
+make all
+
+# Or build separately
+make ui       # npm install + vite build → web/static/
+make build    # go build
+
+# Frontend dev server (hot reload on http://localhost:5173)
+make dev-ui
+```
+
+### Web GUI Features
+
+| Feature | Description |
+|---------|-------------|
+| **Stats bar** | Source-only / Target-only / Modified counts at a glance |
+| **Table/View list** | Sidebar with checkboxes and change badges |
+| **Detail view** | Per-column, per-index, per-constraint diff with before/after values |
+| **Migration builder** | Toggle direction (src→tgt / tgt→src) and dialect (MySQL/PostgreSQL) |
+| **Selective SQL** | Check/uncheck individual items; only selected changes are included |
+| **Copy / Download** | Copy SQL to clipboard or download as `.sql` file |
+| **Themes** | Light / Dark / System (follows OS preference, stored in localStorage) |
 
 ## Usage
 
@@ -344,10 +398,10 @@ MIT License - See [LICENSE](LICENSE) for details
 - Additional DBMS support (Oracle, SQL Server)
 - Performance optimization
 
-### Phase 3 (GUI) Planned
-- Web-based visualization tool
-- Advanced DDL generator
-- Real-time synchronization features
+### Phase 3 (GUI) ✓
+- Web-based diff viewer (React + TypeScript + Tailwind CSS)
+- Interactive migration SQL builder with per-item selection
+- Dark / Light / System theme toggle
 
 ### Phase 4 (Stability) Planned
 - Integrated test automation

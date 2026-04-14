@@ -18,6 +18,7 @@
 - **선택적 필터링**: 특정 테이블/컬럼 제외 가능
 - **마이그레이션 SQL 자동 생성**: 스키마 차이를 DDL로 자동 변환
 - **YAML 설정 지원**: 복잡한 비교 환경을 파일로 관리
+- **Web GUI**: 브라우저 기반 diff 뷰어 및 인터랙티브 마이그레이션 SQL 빌더
 
 ## 설치
 
@@ -43,6 +44,11 @@ export PATH=$PATH:$HOME/go/bin
 ```bash
 git clone https://github.com/tidylogic/db-diff.git
 cd db-diff
+
+# 프론트엔드 + 백엔드 전체 빌드
+make all
+
+# Go 바이너리만 빌드 (web/static/ 이 이미 있는 경우)
 go build -o db-diff ./cmd/db-diff
 ```
 
@@ -53,6 +59,54 @@ go build -o db-diff ./cmd/db-diff
 docker build -t db-diff .
 docker run --rm db-diff compare --help
 ```
+
+## Web GUI
+
+브라우저 기반 diff 뷰어로 스키마 변경사항을 시각적으로 확인하고 마이그레이션 SQL을 인터랙티브하게 생성합니다:
+
+```bash
+# 1. JSON diff 파일 생성
+./db-diff compare \
+  --source "mysql://user:pass@host1:3306/db" \
+  --target "mysql://user:pass@host2:3306/db" \
+  --output json > diff.json
+
+# 2. 웹 서버 실행 (기본 포트 8080)
+./db-diff web
+
+# 3. http://localhost:8080 접속 후 diff.json 파일 로드
+```
+
+```bash
+# 포트 변경
+./db-diff web --port 3000
+```
+
+### Web UI 빌드
+
+```bash
+# 프론트엔드 + 백엔드 한 번에 빌드
+make all
+
+# 개별 빌드
+make ui       # npm install + vite build → web/static/
+make build    # go build
+
+# 프론트엔드 개발 서버 (http://localhost:5173, 핫 리로드)
+make dev-ui
+```
+
+### Web GUI 기능
+
+| 기능 | 설명 |
+|------|------|
+| **통계 바** | Source Only / Target Only / Modified 건수 한눈에 확인 |
+| **테이블/뷰 목록** | 체크박스와 변경 배지가 있는 사이드바 |
+| **상세 뷰** | 컬럼/인덱스/제약조건별 before→after 값 비교 |
+| **마이그레이션 빌더** | 방향(src→tgt / tgt→src)과 방언(MySQL/PostgreSQL) 토글 |
+| **선택적 SQL 생성** | 항목별 체크/언체크로 포함할 변경사항 선택 |
+| **복사 / 다운로드** | SQL을 클립보드에 복사하거나 `.sql` 파일로 다운로드 |
+| **테마** | Light / Dark / System (OS 환경설정 연동, localStorage 저장) |
 
 ## 사용법
 
@@ -344,10 +398,10 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 참조
 - 추가 DBMS 지원 (Oracle, SQL Server)
 - 성능 최적화
 
-### Phase 3 (GUI) 계획 중
-- 웹 기반 시각화 도구
-- DDL 생성기 고도화
-- 실시간 동기화 기능
+### Phase 3 (GUI) ✓
+- 웹 기반 diff 뷰어 (React + TypeScript + Tailwind CSS)
+- 항목별 선택 기능이 있는 인터랙티브 마이그레이션 SQL 빌더
+- Dark / Light / System 테마 토글
 
 ### Phase 4 (안정성) 계획 중
 - 통합 테스트 자동화
