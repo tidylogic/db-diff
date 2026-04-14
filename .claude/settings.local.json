@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go get:*)",
+      "Read(//mnt/c/Github/personal/**)",
+      "Bash(go build:*)",
+      "Bash(go mod:*)",
+      "Bash(./db-diff.exe --help)"
+    ]
+  }
+}
