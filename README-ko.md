@@ -1,5 +1,7 @@
 # db-diff
 
+[![CI](https://github.com/tidylogic/db-diff/actions/workflows/ci.yml/badge.svg)](https://github.com/tidylogic/db-diff/actions/workflows/ci.yml)
+
 **데이터베이스 스키마 비교 도구** - MySQL과 PostgreSQL 간의 데이터베이스 스키마 차이를 빠르고 정확하게 비교합니다.
 
 🇬🇧 [English Documentation](README.md)
