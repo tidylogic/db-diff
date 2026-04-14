@@ -1,5 +1,7 @@
 # db-diff
 
+[![CI](https://github.com/tidylogic/db-diff/actions/workflows/ci.yml/badge.svg)](https://github.com/tidylogic/db-diff/actions/workflows/ci.yml)
+
 **Database Schema Comparison Tool** - Quickly and accurately compare database schemas between MySQL and PostgreSQL environments.
 
 🇰🇷 [한국어 문서 보기](README-ko.md)
