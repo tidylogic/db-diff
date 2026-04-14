@@ -24,6 +24,7 @@
 
 ### Prerequisites
 - Go 1.26 or later
+- Node.js 18+ and npm (required only for building the web GUI)
 
 ### Option 1: Using `go install`
 
