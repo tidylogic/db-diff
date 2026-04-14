@@ -3,9 +3,10 @@ import type { ChangeType } from '../types'
 interface Props {
   change: ChangeType
   size?: 'sm' | 'md'
+  labels?: Record<ChangeType, string>
 }
 
-const LABELS: Record<ChangeType, string> = {
+const DEFAULT_LABELS: Record<ChangeType, string> = {
   added: 'Target Only',
   removed: 'Source Only',
   modified: 'Modified',
@@ -21,11 +22,12 @@ const STYLES: Record<ChangeType, string> = {
     'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800',
 }
 
-export function ChangeBadge({ change, size = 'sm' }: Props) {
+export function ChangeBadge({ change, size = 'sm', labels }: Props) {
+  const label = (labels ?? DEFAULT_LABELS)[change]
   const pad = size === 'sm' ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-0.5'
   return (
     <span className={`rounded font-medium whitespace-nowrap ${pad} ${STYLES[change]}`}>
-      {LABELS[change]}
+      {label}
     </span>
   )
 }

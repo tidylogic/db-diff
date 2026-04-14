@@ -1,0 +1,589 @@
+{
+  "SourceName": "production_db",
+  "TargetName": "staging_db",
+  "Identical": false,
+  "Tables": [
+    {
+      "Name": "users",
+      "Change": "modified",
+      "Columns": [
+        {
+          "Name": "id",
+          "Change": "removed",
+          "Source": {
+            "Name": "id",
+            "OrdinalPos": 1,
+            "DataType": "int",
+            "RawType": "int(11)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "User primary key",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          },
+          "Target": null
+        },
+        {
+          "Name": "user_id",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "user_id",
+            "OrdinalPos": 1,
+            "DataType": "bigint",
+            "RawType": "bigint(20)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "User ID (bigint)",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          }
+        },
+        {
+          "Name": "email",
+          "Change": "modified",
+          "Source": {
+            "Name": "email",
+            "OrdinalPos": 2,
+            "DataType": "varchar",
+            "RawType": "varchar(100)",
+            "Nullable": true,
+            "Default": null,
+            "Comment": "User email",
+            "CharMaxLen": 100,
+            "NumPrecision": null,
+            "NumScale": null
+          },
+          "Target": {
+            "Name": "email",
+            "OrdinalPos": 2,
+            "DataType": "varchar",
+            "RawType": "varchar(255)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "User email address",
+            "CharMaxLen": 255,
+            "NumPrecision": null,
+            "NumScale": null
+          }
+        },
+        {
+          "Name": "username",
+          "Change": "modified",
+          "Source": {
+            "Name": "username",
+            "OrdinalPos": 3,
+            "DataType": "varchar",
+            "RawType": "varchar(50)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "",
+            "CharMaxLen": 50,
+            "NumPrecision": null,
+            "NumScale": null
+          },
+          "Target": {
+            "Name": "username",
+            "OrdinalPos": 3,
+            "DataType": "varchar",
+            "RawType": "varchar(50)",
+            "Nullable": false,
+            "Default": "'guest'",
+            "Comment": "User display name",
+            "CharMaxLen": 50,
+            "NumPrecision": null,
+            "NumScale": null
+          }
+        },
+        {
+          "Name": "status",
+          "Change": "removed",
+          "Source": {
+            "Name": "status",
+            "OrdinalPos": 4,
+            "DataType": "varchar",
+            "RawType": "varchar(20)",
+            "Nullable": false,
+            "Default": "'active'",
+            "Comment": "User status",
+            "CharMaxLen": 20,
+            "NumPrecision": null,
+            "NumScale": null
+          },
+          "Target": null
+        },
+        {
+          "Name": "is_active",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "is_active",
+            "OrdinalPos": 5,
+            "DataType": "boolean",
+            "RawType": "tinyint(1)",
+            "Nullable": false,
+            "Default": "1",
+            "Comment": "Whether user is active",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          }
+        },
+        {
+          "Name": "created_at",
+          "Change": "modified",
+          "Source": {
+            "Name": "created_at",
+            "OrdinalPos": 5,
+            "DataType": "datetime",
+            "RawType": "datetime",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          },
+          "Target": {
+            "Name": "created_at",
+            "OrdinalPos": 6,
+            "DataType": "timestamp",
+            "RawType": "timestamp",
+            "Nullable": false,
+            "Default": "CURRENT_TIMESTAMP",
+            "Comment": "Record creation timestamp",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          }
+        },
+        {
+          "Name": "updated_at",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "updated_at",
+            "OrdinalPos": 7,
+            "DataType": "timestamp",
+            "RawType": "timestamp",
+            "Nullable": false,
+            "Default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+            "Comment": "Last update timestamp",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          }
+        }
+      ],
+      "Indexes": [
+        {
+          "Name": "PRIMARY",
+          "Change": "modified",
+          "Source": {
+            "Name": "PRIMARY",
+            "Columns": ["id"],
+            "Unique": true,
+            "IsPrimary": true
+          },
+          "Target": {
+            "Name": "PRIMARY",
+            "Columns": ["user_id"],
+            "Unique": true,
+            "IsPrimary": true
+          }
+        },
+        {
+          "Name": "idx_email",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "idx_email",
+            "Columns": ["email"],
+            "Unique": true,
+            "IsPrimary": false
+          }
+        },
+        {
+          "Name": "idx_username",
+          "Change": "modified",
+          "Source": {
+            "Name": "idx_username",
+            "Columns": ["username"],
+            "Unique": false,
+            "IsPrimary": false
+          },
+          "Target": {
+            "Name": "idx_username",
+            "Columns": ["username", "is_active"],
+            "Unique": false,
+            "IsPrimary": false
+          }
+        },
+        {
+          "Name": "idx_status",
+          "Change": "removed",
+          "Source": {
+            "Name": "idx_status",
+            "Columns": ["status"],
+            "Unique": false,
+            "IsPrimary": false
+          },
+          "Target": null
+        }
+      ],
+      "Constraints": [
+        {
+          "Name": "fk_users_organization",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "fk_users_organization",
+            "Type": "FOREIGN KEY",
+            "Columns": ["org_id"],
+            "RefTable": "organizations",
+            "RefColumns": ["id"]
+          }
+        },
+        {
+          "Name": "chk_email_not_empty",
+          "Change": "removed",
+          "Source": {
+            "Name": "chk_email_not_empty",
+            "Type": "CHECK",
+            "Columns": ["email"],
+            "RefTable": "",
+            "RefColumns": []
+          },
+          "Target": null
+        }
+      ]
+    },
+    {
+      "Name": "products",
+      "Change": "modified",
+      "Columns": [
+        {
+          "Name": "id",
+          "Change": "modified",
+          "Source": {
+            "Name": "id",
+            "OrdinalPos": 1,
+            "DataType": "int",
+            "RawType": "int(11)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          },
+          "Target": {
+            "Name": "id",
+            "OrdinalPos": 1,
+            "DataType": "int",
+            "RawType": "int(11)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "Product ID",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          }
+        },
+        {
+          "Name": "name",
+          "Change": "modified",
+          "Source": {
+            "Name": "name",
+            "OrdinalPos": 2,
+            "DataType": "varchar",
+            "RawType": "varchar(100)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "Product name",
+            "CharMaxLen": 100,
+            "NumPrecision": null,
+            "NumScale": null
+          },
+          "Target": {
+            "Name": "name",
+            "OrdinalPos": 2,
+            "DataType": "varchar",
+            "RawType": "varchar(200)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "Product name (extended length)",
+            "CharMaxLen": 200,
+            "NumPrecision": null,
+            "NumScale": null
+          }
+        },
+        {
+          "Name": "price",
+          "Change": "modified",
+          "Source": {
+            "Name": "price",
+            "OrdinalPos": 3,
+            "DataType": "decimal",
+            "RawType": "decimal(10,2)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "Price",
+            "CharMaxLen": null,
+            "NumPrecision": 10,
+            "NumScale": 2
+          },
+          "Target": {
+            "Name": "price",
+            "OrdinalPos": 3,
+            "DataType": "decimal",
+            "RawType": "decimal(12,3)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "Product price with higher precision",
+            "CharMaxLen": null,
+            "NumPrecision": 12,
+            "NumScale": 3
+          }
+        }
+      ],
+      "Indexes": [],
+      "Constraints": []
+    },
+    {
+      "Name": "orders",
+      "Change": "added",
+      "Columns": [
+        {
+          "Name": "id",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "id",
+            "OrdinalPos": 1,
+            "DataType": "int",
+            "RawType": "int(11)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "Order ID",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          }
+        },
+        {
+          "Name": "user_id",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "user_id",
+            "OrdinalPos": 2,
+            "DataType": "int",
+            "RawType": "int(11)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "Reference to users table",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          }
+        },
+        {
+          "Name": "total_amount",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "total_amount",
+            "OrdinalPos": 3,
+            "DataType": "decimal",
+            "RawType": "decimal(10,2)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "Order total",
+            "CharMaxLen": null,
+            "NumPrecision": 10,
+            "NumScale": 2
+          }
+        },
+        {
+          "Name": "created_at",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "created_at",
+            "OrdinalPos": 4,
+            "DataType": "timestamp",
+            "RawType": "timestamp",
+            "Nullable": false,
+            "Default": "CURRENT_TIMESTAMP",
+            "Comment": "",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          }
+        }
+      ],
+      "Indexes": [
+        {
+          "Name": "PRIMARY",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "PRIMARY",
+            "Columns": ["id"],
+            "Unique": true,
+            "IsPrimary": true
+          }
+        },
+        {
+          "Name": "idx_user_id",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "idx_user_id",
+            "Columns": ["user_id"],
+            "Unique": false,
+            "IsPrimary": false
+          }
+        }
+      ],
+      "Constraints": [
+        {
+          "Name": "fk_orders_users",
+          "Change": "added",
+          "Source": null,
+          "Target": {
+            "Name": "fk_orders_users",
+            "Type": "FOREIGN KEY",
+            "Columns": ["user_id"],
+            "RefTable": "users",
+            "RefColumns": ["user_id"]
+          }
+        }
+      ]
+    },
+    {
+      "Name": "audit_logs",
+      "Change": "removed",
+      "Columns": [
+        {
+          "Name": "id",
+          "Change": "removed",
+          "Source": {
+            "Name": "id",
+            "OrdinalPos": 1,
+            "DataType": "int",
+            "RawType": "int(11)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          },
+          "Target": null
+        },
+        {
+          "Name": "user_id",
+          "Change": "removed",
+          "Source": {
+            "Name": "user_id",
+            "OrdinalPos": 2,
+            "DataType": "int",
+            "RawType": "int(11)",
+            "Nullable": true,
+            "Default": null,
+            "Comment": "",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          },
+          "Target": null
+        },
+        {
+          "Name": "action",
+          "Change": "removed",
+          "Source": {
+            "Name": "action",
+            "OrdinalPos": 3,
+            "DataType": "varchar",
+            "RawType": "varchar(50)",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "Action type",
+            "CharMaxLen": 50,
+            "NumPrecision": null,
+            "NumScale": null
+          },
+          "Target": null
+        },
+        {
+          "Name": "created_at",
+          "Change": "removed",
+          "Source": {
+            "Name": "created_at",
+            "OrdinalPos": 4,
+            "DataType": "datetime",
+            "RawType": "datetime",
+            "Nullable": false,
+            "Default": null,
+            "Comment": "",
+            "CharMaxLen": null,
+            "NumPrecision": null,
+            "NumScale": null
+          },
+          "Target": null
+        }
+      ],
+      "Indexes": [
+        {
+          "Name": "PRIMARY",
+          "Change": "removed",
+          "Source": {
+            "Name": "PRIMARY",
+            "Columns": ["id"],
+            "Unique": true,
+            "IsPrimary": true
+          },
+          "Target": null
+        }
+      ],
+      "Constraints": []
+    }
+  ],
+  "Views": [
+    {
+      "Name": "user_summary",
+      "Change": "modified",
+      "Source": {
+        "Name": "user_summary",
+        "Definition": "SELECT id, email, username, status, created_at FROM users WHERE status = 'active'"
+      },
+      "Target": {
+        "Name": "user_summary",
+        "Definition": "SELECT user_id, email, username, is_active, created_at, updated_at FROM users WHERE is_active = 1"
+      }
+    },
+    {
+      "Name": "monthly_stats",
+      "Change": "added",
+      "Source": null,
+      "Target": {
+        "Name": "monthly_stats",
+        "Definition": "SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as order_count, SUM(total_amount) as total_sales FROM orders GROUP BY DATE_FORMAT(created_at, '%Y-%m')"
+      }
+    },
+    {
+      "Name": "old_reports",
+      "Change": "removed",
+      "Source": {
+        "Name": "old_reports",
+        "Definition": "SELECT id, DATE(created_at) as date, COUNT(*) as count FROM audit_logs GROUP BY DATE(created_at)"
+      },
+      "Target": null
+    }
+  ]
+}
+
