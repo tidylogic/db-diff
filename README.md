@@ -308,10 +308,22 @@ go build -o db-diff ./cmd/db-diff
 
 ### Testing
 
-Integration tests using Testcontainers for real MySQL/PostgreSQL environments:
+Integration tests using Testcontainers spin up real database containers and verify schema extraction across multiple major versions:
+
+| Database   | Versions tested       |
+|------------|-----------------------|
+| MySQL      | 5.7, 8.0, 8.4         |
+| PostgreSQL | 13, 14, 15, 16, 17    |
+
+All version subtests run in parallel. Docker must be available on the host.
 
 ```bash
-go test -v ./internal/connector/...
+# Run all compatibility tests (requires Docker)
+go test -v -timeout 15m ./internal/connector/...
+
+# Run a specific database only
+go test -v -timeout 10m ./internal/connector/mysql/
+go test -v -timeout 10m ./internal/connector/postgres/
 ```
 
 ## License
