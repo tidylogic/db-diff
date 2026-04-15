@@ -33,8 +33,11 @@ func Compare(source, target *schema.Schema, ignore config.IgnoreConfig) *DiffRes
 		} else {
 			// Table only in source → Removed
 			result.Tables = append(result.Tables, TableDiff{
-				Name:   name,
-				Change: Removed,
+				Name:        name,
+				Change:      Removed,
+				Columns:     []ColumnDiff{},
+				Indexes:     []IndexDiff{},
+				Constraints: []ConstraintDiff{},
 			})
 		}
 	}
@@ -45,8 +48,11 @@ func Compare(source, target *schema.Schema, ignore config.IgnoreConfig) *DiffRes
 		if _, ok := source.Tables[name]; !ok {
 			// Table only in target → Added
 			result.Tables = append(result.Tables, TableDiff{
-				Name:   name,
-				Change: Added,
+				Name:        name,
+				Change:      Added,
+				Columns:     []ColumnDiff{},
+				Indexes:     []IndexDiff{},
+				Constraints: []ConstraintDiff{},
 			})
 		}
 	}
@@ -99,7 +105,13 @@ func Compare(source, target *schema.Schema, ignore config.IgnoreConfig) *DiffRes
 // compareTable returns a TableDiff for tables that exist in both schemas.
 // Returns nil when the tables are identical.
 func compareTable(name string, src, tgt schema.Table, ignoreFields map[string]bool) *TableDiff {
-	td := &TableDiff{Name: name, Change: Modified}
+	td := &TableDiff{
+		Name:        name,
+		Change:      Modified,
+		Columns:     []ColumnDiff{},
+		Indexes:     []IndexDiff{},
+		Constraints: []ConstraintDiff{},
+	}
 
 	// Columns
 	srcCols := columnMap(src.Columns)

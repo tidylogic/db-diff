@@ -16,7 +16,12 @@ function parseJSON(text: string): DiffResult | string {
     if (!Array.isArray(data.Tables) && data.Tables != null) {
       return 'Invalid format: Tables field must be an array.'
     }
-    data.Tables = data.Tables ?? []
+    data.Tables = (data.Tables ?? []).map((t) => ({
+      ...t,
+      Columns: t.Columns ?? [],
+      Indexes: t.Indexes ?? [],
+      Constraints: t.Constraints ?? [],
+    }))
     data.Views = data.Views ?? []
     return data
   } catch {
