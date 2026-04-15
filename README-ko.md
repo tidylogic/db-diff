@@ -446,6 +446,10 @@ mysql -h <host> -u <user> -p<password>
 
 ## 변경 이력
 
+### 미출시
+- 수정: 뷰에 SELECT 권한이 없을 때 PostgreSQL `view_definition` NULL 오류 수정
+- 수정: Columns/Indexes/Constraints가 null인 JSON 로드 시 웹 UI 크래시 수정
+
 ### v0.1.0 (초기 릴리스)
 - MySQL 및 PostgreSQL 기본 지원
 - 스키마 비교 및 마이그레이션 생성

@@ -449,6 +449,10 @@ mysql -h <host> -u <user> -p<password>
 
 ## Changelog
 
+### Unreleased
+- Fixed: PostgreSQL `view_definition` NULL error when user lacks SELECT privilege on a view
+- Fixed: Web UI crash (`Cannot read properties of null`) when loading JSON with null Columns/Indexes/Constraints arrays
+
 ### v0.1.0 (Initial Release)
 - Basic MySQL and PostgreSQL support
 - Schema comparison and migration generation
