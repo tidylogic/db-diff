@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"db-diff/internal/diff"
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/diff"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -768,14 +768,14 @@ func TestGenerateFiltered(t *testing.T) {
 			wantAbsent: []string{"ALTER TABLE", "DROP TABLE", "CREATE VIEW"},
 		},
 		{
-			name: "select_view_only",
-			sel:  Selection{Views: []string{"user_orders"}},
+			name:         "select_view_only",
+			sel:          Selection{Views: []string{"user_orders"}},
 			wantContains: []string{"CREATE VIEW `user_orders`"},
 			wantAbsent:   []string{"ALTER TABLE", "DROP TABLE"},
 		},
 		{
-			name: "select_removed_table",
-			sel:  Selection{Tables: []string{"orders"}},
+			name:         "select_removed_table",
+			sel:          Selection{Tables: []string{"orders"}},
 			wantContains: []string{"DROP TABLE `orders`"},
 			wantAbsent:   []string{"users", "user_orders"},
 		},

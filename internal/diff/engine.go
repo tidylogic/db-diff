@@ -4,8 +4,8 @@ import (
 	"sort"
 	"strings"
 
-	"db-diff/internal/config"
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/config"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 // Compare produces a DiffResult describing all differences between source and target.

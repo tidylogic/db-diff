@@ -7,8 +7,8 @@ import (
 
 	"github.com/fatih/color"
 
-	"db-diff/internal/diff"
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/diff"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 var (

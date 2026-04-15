@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 // Connector implements the connector.Connector interface for PostgreSQL.

@@ -3,9 +3,9 @@ package connector
 import (
 	"fmt"
 
-	"db-diff/internal/connector/mysql"
-	"db-diff/internal/connector/postgres"
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/connector/mysql"
+	"github.com/tidylogic/db-diff/internal/connector/postgres"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 // Connector abstracts a single RDBMS connection.

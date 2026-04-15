@@ -7,13 +7,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"db-diff/internal/config"
-	"db-diff/internal/connector"
-	"db-diff/internal/diff"
-	"db-diff/internal/migrate"
-	"db-diff/internal/output"
-	"db-diff/internal/schema"
-	"db-diff/web"
+	"github.com/tidylogic/db-diff/internal/config"
+	"github.com/tidylogic/db-diff/internal/connector"
+	"github.com/tidylogic/db-diff/internal/diff"
+	"github.com/tidylogic/db-diff/internal/migrate"
+	"github.com/tidylogic/db-diff/internal/output"
+	"github.com/tidylogic/db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/web"
 )
 
 func main() {

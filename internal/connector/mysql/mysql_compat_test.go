@@ -10,8 +10,8 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tc_mysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 
-	"db-diff/internal/connector/mysql"
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/connector/mysql"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 // mysqlSetupStatements creates a representative test schema:

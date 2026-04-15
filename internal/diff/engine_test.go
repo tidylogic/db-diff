@@ -3,8 +3,8 @@ package diff
 import (
 	"testing"
 
-	"db-diff/internal/config"
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/config"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 // ── helpers ───────────────────────────────────────────────────────────────────

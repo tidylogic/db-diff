@@ -1,4 +1,4 @@
-module db-diff
+module github.com/tidylogic/db-diff
 
 go 1.26
 

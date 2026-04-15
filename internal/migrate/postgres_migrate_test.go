@@ -11,11 +11,11 @@ import (
 	tc_pg "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 
-	"db-diff/internal/config"
-	"db-diff/internal/connector/postgres"
-	"db-diff/internal/diff"
-	"db-diff/internal/migrate"
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/config"
+	"github.com/tidylogic/db-diff/internal/connector/postgres"
+	"github.com/tidylogic/db-diff/internal/diff"
+	"github.com/tidylogic/db-diff/internal/migrate"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 // pgSrcStatements defines the source schema.

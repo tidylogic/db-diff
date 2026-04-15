@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"db-diff/internal/diff"
+	"github.com/tidylogic/db-diff/internal/diff"
 )
 
 // WriteJSON marshals the DiffResult to pretty-printed JSON and writes to w.

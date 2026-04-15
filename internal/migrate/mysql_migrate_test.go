@@ -11,11 +11,11 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	tc_mysql "github.com/testcontainers/testcontainers-go/modules/mysql"
 
-	"db-diff/internal/config"
-	"db-diff/internal/connector/mysql"
-	"db-diff/internal/diff"
-	"db-diff/internal/migrate"
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/config"
+	"github.com/tidylogic/db-diff/internal/connector/mysql"
+	"github.com/tidylogic/db-diff/internal/diff"
+	"github.com/tidylogic/db-diff/internal/migrate"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 // mysqlSrcStatements defines the source schema:

@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"os"
 
-	"db-diff/internal/diff"
-	"db-diff/internal/migrate"
+	"github.com/tidylogic/db-diff/internal/diff"
+	"github.com/tidylogic/db-diff/internal/migrate"
 )
 
 //go:embed all:static

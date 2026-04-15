@@ -1,6 +1,6 @@
 package diff
 
-import "db-diff/internal/schema"
+import "github.com/tidylogic/db-diff/internal/schema"
 
 // ChangeType describes the kind of change between source and target.
 type ChangeType string

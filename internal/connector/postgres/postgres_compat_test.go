@@ -11,8 +11,8 @@ import (
 	tc_pg "github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 
-	"db-diff/internal/connector/postgres"
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/connector/postgres"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 // pgSetupStatements creates a representative test schema:

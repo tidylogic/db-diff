@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"db-diff/internal/diff"
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/diff"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 // Generate produces DDL SQL from a DiffResult.

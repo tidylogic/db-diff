@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	"db-diff/internal/schema"
+	"github.com/tidylogic/db-diff/internal/schema"
 )
 
 // Connector implements the connector.Connector interface for MySQL.
