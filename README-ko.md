@@ -436,6 +436,7 @@ mysql -h <host> -u <user> -p<password>
 - 데이터베이스 사용자에게 다음 권한 필요:
   - MySQL: `SELECT` (information_schema)
   - PostgreSQL: `CONNECT`, `USAGE` (스키마)
+- 접속 사용자가 특정 뷰에 대한 `SELECT` 권한이 없으면 PostgreSQL은 `information_schema.views`의 `view_definition`을 NULL로 반환합니다. 이 경우 뷰는 빈 정의로 기록되며 에러 없이 처리됩니다.
 
 ## 지원
 
