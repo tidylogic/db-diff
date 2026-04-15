@@ -133,7 +133,7 @@ func TestMySQLMigrate(t *testing.T) {
 				t.Fatal("expected schemas to differ, got identical")
 			}
 
-			sqlOut, err := migrate.Generate(result, "source_to_target", "mysql")
+			sqlOut, err := migrate.Generate(result, "target_to_source", "mysql")
 			if err != nil {
 				t.Fatalf("Generate: %v", err)
 			}
