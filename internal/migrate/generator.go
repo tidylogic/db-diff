@@ -12,8 +12,8 @@ import (
 // Generate produces DDL SQL from a DiffResult.
 //
 // direction:
-//   - "source_to_target": generate DDL to make source match target (apply target's changes)
-//   - "target_to_source": generate DDL to make target match source (reverse direction)
+//   - "source_to_target": generate DDL to apply to TARGET, making it match source (propagate source → target)
+//   - "target_to_source": generate DDL to apply to SOURCE, making it match target (propagate target → source)
 //
 // dialect: "mysql" | "postgres"
 func Generate(result *diff.DiffResult, direction, dialect string) (string, error) {
@@ -62,9 +62,11 @@ func Generate(result *diff.DiffResult, direction, dialect string) (string, error
 
 // tableStmts returns DDL statements for a single TableDiff.
 func tableStmts(td diff.TableDiff, direction, dialect string) ([]string, error) {
-	// Determine effective change from the caller's perspective
+	// Determine effective change from the caller's perspective.
+	// source_to_target propagates source → target, so Added/Removed are inverted
+	// relative to the diff (which uses target-centric terminology).
 	change := td.Change
-	if direction == "target_to_source" {
+	if direction == "source_to_target" {
 		change = invertChange(change)
 	}
 
@@ -82,7 +84,7 @@ func tableStmts(td diff.TableDiff, direction, dialect string) ([]string, error) 
 	case diff.Modified:
 		for _, cd := range td.Columns {
 			colChange := cd.Change
-			if direction == "target_to_source" {
+			if direction == "source_to_target" {
 				colChange = invertChange(colChange)
 			}
 			stmt, err := columnStmt(td.Name, cd, colChange, direction, dialect)
@@ -96,10 +98,10 @@ func tableStmts(td diff.TableDiff, direction, dialect string) ([]string, error) 
 
 		for _, id := range td.Indexes {
 			idxChange := id.Change
-			if direction == "target_to_source" {
+			if direction == "source_to_target" {
 				idxChange = invertChange(idxChange)
 			}
-			s := indexStmt(td.Name, id, idxChange, dialect)
+			s := indexStmt(td.Name, id, idxChange, direction, dialect)
 			if s != "" {
 				stmts = append(stmts, s)
 			}
@@ -107,10 +109,10 @@ func tableStmts(td diff.TableDiff, direction, dialect string) ([]string, error) 
 
 		for _, cd := range td.Constraints {
 			cChange := cd.Change
-			if direction == "target_to_source" {
+			if direction == "source_to_target" {
 				cChange = invertChange(cChange)
 			}
-			s := constraintStmt(td.Name, cd, cChange, dialect)
+			s := constraintStmt(td.Name, cd, cChange, direction, dialect)
 			if s != "" {
 				stmts = append(stmts, s)
 			}
@@ -124,19 +126,22 @@ func columnStmt(table string, cd diff.ColumnDiff, change diff.ChangeType, direct
 	t := quoteIdent(table, dialect)
 	col := quoteIdent(cd.Name, dialect)
 
-	// Pick the column definition to use
+	// Pick the column definition to use.
+	// For source_to_target the change has already been inverted, so an
+	// originally-Removed column arrives here as Added; its definition lives
+	// in cd.Source (not cd.Target, which is nil).
 	var colDef *schema.Column
 	switch change {
 	case diff.Added:
 		colDef = cd.Target
-		if direction == "target_to_source" {
+		if direction == "source_to_target" {
 			colDef = cd.Source
 		}
 	case diff.Removed:
 		return fmt.Sprintf("ALTER TABLE %s DROP COLUMN %s", t, col), nil
 	case diff.Modified:
 		colDef = cd.Target
-		if direction == "target_to_source" {
+		if direction == "source_to_target" {
 			colDef = cd.Source
 		}
 	}
@@ -193,18 +198,29 @@ func columnStmt(table string, cd diff.ColumnDiff, change diff.ChangeType, direct
 	return "", nil
 }
 
-func indexStmt(table string, id diff.IndexDiff, change diff.ChangeType, dialect string) string {
+func indexStmt(table string, id diff.IndexDiff, change diff.ChangeType, direction, dialect string) string {
 	var idx *schema.Index
 	switch change {
 	case diff.Added:
+		// After inversion, an originally-Removed index has its def in id.Source.
 		idx = id.Target
+		if idx == nil {
+			idx = id.Source
+		}
 	case diff.Removed:
+		// After inversion, an originally-Added index has its def in id.Target.
 		idx = id.Source
+		if idx == nil {
+			idx = id.Target
+		}
 	case diff.Modified:
-		// Drop old, create new
-		drop := dropIndexStmt(table, id.Source, dialect)
-		create := createIndexStmt(table, id.Target, dialect)
-		return drop + ";\n" + create
+		// Drop old version, create new version — pick which is "old" by direction.
+		if direction == "source_to_target" {
+			// Applying to target: drop target's version, create source's version.
+			return dropIndexStmt(table, id.Target, dialect) + ";\n" + createIndexStmt(table, id.Source, dialect)
+		}
+		// Applying to source: drop source's version, create target's version.
+		return dropIndexStmt(table, id.Source, dialect) + ";\n" + createIndexStmt(table, id.Target, dialect)
 	}
 
 	if idx == nil {
@@ -248,21 +264,44 @@ func dropIndexStmt(table string, idx *schema.Index, dialect string) string {
 	}
 }
 
-func constraintStmt(table string, cd diff.ConstraintDiff, change diff.ChangeType, dialect string) string {
+func constraintStmt(table string, cd diff.ConstraintDiff, change diff.ChangeType, direction, dialect string) string {
 	t := quoteIdent(table, dialect)
 
 	switch change {
 	case diff.Added:
-		if cd.Target == nil {
+		// After inversion, an originally-Removed constraint has its def in cd.Source.
+		c := cd.Target
+		if c == nil {
+			c = cd.Source
+		}
+		if c == nil {
 			return ""
 		}
-		return addConstraintSQL(t, cd.Target, dialect)
+		return addConstraintSQL(t, c, dialect)
 	case diff.Removed:
-		if cd.Source == nil {
+		// After inversion, an originally-Added constraint has its def in cd.Target.
+		c := cd.Source
+		if c == nil {
+			c = cd.Target
+		}
+		if c == nil {
 			return ""
 		}
-		return fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s", t, quoteIdent(cd.Source.Name, dialect))
+		return fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s", t, quoteIdent(c.Name, dialect))
 	case diff.Modified:
+		// Drop old version, create new version — pick which is "old" by direction.
+		if direction == "source_to_target" {
+			// Applying to target: drop target's version, create source's version.
+			stmts := []string{}
+			if cd.Target != nil {
+				stmts = append(stmts, fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s", t, quoteIdent(cd.Target.Name, dialect)))
+			}
+			if cd.Source != nil {
+				stmts = append(stmts, addConstraintSQL(t, cd.Source, dialect))
+			}
+			return strings.Join(stmts, ";\n")
+		}
+		// Applying to source: drop source's version, create target's version.
 		stmts := []string{}
 		if cd.Source != nil {
 			stmts = append(stmts, fmt.Sprintf("ALTER TABLE %s DROP CONSTRAINT %s", t, quoteIdent(cd.Source.Name, dialect)))
@@ -300,26 +339,31 @@ func addConstraintSQL(table string, c *schema.Constraint, dialect string) string
 
 func viewStmts(vd diff.ViewDiff, direction, dialect string) []string {
 	change := vd.Change
-	if direction == "target_to_source" {
+	if direction == "source_to_target" {
 		change = invertChange(change)
 	}
 
 	switch change {
 	case diff.Added:
-		if vd.Target == nil {
+		// After inversion, an originally-Removed view has its def in vd.Source.
+		def := vd.Target
+		if def == nil {
+			def = vd.Source
+		}
+		if def == nil {
 			return nil
 		}
-		return []string{fmt.Sprintf("CREATE VIEW %s AS\n%s", quoteIdent(vd.Name, dialect), vd.Target.Definition)}
+		return []string{fmt.Sprintf("CREATE VIEW %s AS\n%s", quoteIdent(vd.Name, dialect), def.Definition)}
 	case diff.Removed:
 		return []string{fmt.Sprintf("DROP VIEW %s", quoteIdent(vd.Name, dialect))}
 	case diff.Modified:
-		var src, tgt *schema.View
-		if direction == "target_to_source" {
-			src, tgt = vd.Target, vd.Source
+		// Pick which definition to recreate based on direction.
+		var tgt *schema.View
+		if direction == "source_to_target" {
+			tgt = vd.Source // propagate source def to target
 		} else {
-			src, tgt = vd.Source, vd.Target
+			tgt = vd.Target // propagate target def to source
 		}
-		_ = src
 		if tgt == nil {
 			return nil
 		}

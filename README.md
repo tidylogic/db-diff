@@ -171,6 +171,13 @@ migrate:
   --migrate-output migration.sql
 ```
 
+**Migration direction semantics:**
+
+| Direction | Meaning | Apply SQL to |
+|-----------|---------|--------------|
+| `source_to_target` | Propagate source schema → target (make target match source) | TARGET database |
+| `target_to_source` | Propagate target schema → source (make source match target) | SOURCE database |
+
 ### Filtering Options
 
 ```bash

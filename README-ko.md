@@ -171,6 +171,13 @@ migrate:
   --migrate-output migration.sql
 ```
 
+**마이그레이션 방향 의미:**
+
+| 방향 | 의미 | SQL 적용 대상 |
+|------|------|--------------|
+| `source_to_target` | source 스키마 → target으로 전파 (target을 source에 맞춤) | TARGET 데이터베이스 |
+| `target_to_source` | target 스키마 → source로 전파 (source를 target에 맞춤) | SOURCE 데이터베이스 |
+
 ### 필터링 옵션
 
 ```bash

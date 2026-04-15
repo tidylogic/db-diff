@@ -145,7 +145,7 @@ func TestPostgresMigrate(t *testing.T) {
 				t.Fatal("expected schemas to differ, got identical")
 			}
 
-			sqlOut, err := migrate.Generate(result, "source_to_target", "postgres")
+			sqlOut, err := migrate.Generate(result, "target_to_source", "postgres")
 			if err != nil {
 				t.Fatalf("Generate: %v", err)
 			}
