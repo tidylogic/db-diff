@@ -102,7 +102,7 @@ make dev-ui
 | Feature | Description |
 |---------|-------------|
 | **Stats bar** | Source-only / Target-only / Modified counts at a glance |
-| **Table/View list** | Sidebar with collapsible sections, change-type filter chips, and DB name toggle |
+| **Table/View list** | Sidebar with collapsible sections, change-type filter chips, and DB name toggle; **All** selects only the currently visible (filtered) items |
 | **Detail view** | Per-column, per-index, per-constraint diff with before/after values |
 | **Migration builder** | Toggle direction (src→tgt / tgt→src) and dialect (MySQL/PostgreSQL) |
 | **Selective SQL** | Check/uncheck individual items; only selected changes are included |

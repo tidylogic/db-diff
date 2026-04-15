@@ -9,7 +9,7 @@ interface Props {
   onSelectItem: (type: 'table' | 'view', name: string) => void
   onToggleTable: (name: string) => void
   onToggleView: (name: string) => void
-  onSelectAll: () => void
+  onSelectAll: (tableNames: string[], viewNames: string[]) => void
   onDeselectAll: () => void
 }
 
@@ -243,7 +243,11 @@ export function Sidebar({
 
   const total = result.Tables.length + result.Views.length
   const selected = selection.tables.size + selection.views.size
-  const isAllSelected = total > 0 && selected === total
+  const filteredTotal = filteredTables.length + filteredViews.length
+  const filteredSelected =
+    filteredTables.filter((t) => selection.tables.has(t.Name)).length +
+    filteredViews.filter((v) => selection.views.has(v.Name)).length
+  const isAllSelected = filteredTotal > 0 && filteredSelected === filteredTotal
   const isNoneSelected = selected === 0
 
   return (
@@ -258,7 +262,7 @@ export function Sidebar({
         </span>
         <div className="flex items-center gap-1">
           <button
-            onClick={onSelectAll}
+            onClick={() => onSelectAll(filteredTables.map((t) => t.Name), filteredViews.map((v) => v.Name))}
             className={`text-xs px-2 py-0.5 rounded transition-colors ${
               isAllSelected
                 ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium'
