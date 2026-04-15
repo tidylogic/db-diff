@@ -55,10 +55,10 @@ func TestGenerate(t *testing.T) {
 	}{
 		// ── MySQL: column operations ──────────────────────────────────────────
 		{
-			// Column exists only in target (Added); source_to_target propagates
+			// Column exists only in target (Added); apply_to_target propagates
 			// source → target, so this column must be dropped from target.
 			name:      "mysql_add_column",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -75,10 +75,10 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"ADD COLUMN"},
 		},
 		{
-			// Column exists only in source (Removed); source_to_target propagates
+			// Column exists only in source (Removed); apply_to_target propagates
 			// source → target, so this column must be added to target.
 			name:      "mysql_drop_column",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -95,9 +95,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"DROP COLUMN"},
 		},
 		{
-			// source_to_target: target gets source's column type (int, not bigint).
+			// apply_to_target: target gets source's column type (int, not bigint).
 			name:      "mysql_modify_column_type",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -115,9 +115,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"bigint"},
 		},
 		{
-			// source_to_target: target gets source's nullability (NOT NULL).
+			// apply_to_target: target gets source's nullability (NOT NULL).
 			name:      "mysql_modify_column_nullable",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -135,9 +135,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"int NULL"},
 		},
 		{
-			// source_to_target: target gets source's definition (no default).
+			// apply_to_target: target gets source's definition (no default).
 			name:      "mysql_modify_column_add_default",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -155,9 +155,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"DEFAULT"},
 		},
 		{
-			// source_to_target: target gets source's definition (includes default 0).
+			// apply_to_target: target gets source's definition (includes default 0).
 			name:      "mysql_modify_column_drop_default",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -175,10 +175,10 @@ func TestGenerate(t *testing.T) {
 		},
 		// ── MySQL: table operations ────────────────────────────────────────────
 		{
-			// Table exists only in source (Removed); source_to_target must add it
+			// Table exists only in source (Removed); apply_to_target must add it
 			// to target — emits a CREATE TABLE placeholder.
 			name:      "mysql_drop_table",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -190,10 +190,10 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"DROP TABLE"},
 		},
 		{
-			// Table exists only in target (Added); source_to_target must drop it
+			// Table exists only in target (Added); apply_to_target must drop it
 			// from target.
 			name:      "mysql_add_table",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -206,9 +206,9 @@ func TestGenerate(t *testing.T) {
 		},
 		// ── MySQL: index operations ────────────────────────────────────────────
 		{
-			// Index exists only in target (Added); source_to_target must drop it.
+			// Index exists only in target (Added); apply_to_target must drop it.
 			name:      "mysql_create_index",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -225,9 +225,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"CREATE INDEX"},
 		},
 		{
-			// Unique index exists only in target (Added); source_to_target must drop it.
+			// Unique index exists only in target (Added); apply_to_target must drop it.
 			name:      "mysql_create_unique_index",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -244,9 +244,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"CREATE INDEX"},
 		},
 		{
-			// Index exists only in source (Removed); source_to_target must create it in target.
+			// Index exists only in source (Removed); apply_to_target must create it in target.
 			name:      "mysql_drop_index",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -263,9 +263,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"DROP INDEX"},
 		},
 		{
-			// Modified index; source_to_target drops target version, creates source version.
+			// Modified index; apply_to_target drops target version, creates source version.
 			name:      "mysql_modify_index",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -287,9 +287,9 @@ func TestGenerate(t *testing.T) {
 		},
 		// ── MySQL: constraint operations ───────────────────────────────────────
 		{
-			// FK exists only in target (Added); source_to_target must drop it.
+			// FK exists only in target (Added); apply_to_target must drop it.
 			name:      "mysql_add_fk",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -314,9 +314,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent: []string{"ADD CONSTRAINT"},
 		},
 		{
-			// FK exists only in source (Removed); source_to_target must add it to target.
+			// FK exists only in source (Removed); apply_to_target must add it to target.
 			name:      "mysql_drop_constraint",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -339,9 +339,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"DROP CONSTRAINT"},
 		},
 		{
-			// Unique constraint exists only in target (Added); source_to_target must drop it.
+			// Unique constraint exists only in target (Added); apply_to_target must drop it.
 			name:      "mysql_add_unique_constraint",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -363,9 +363,9 @@ func TestGenerate(t *testing.T) {
 		},
 		// ── MySQL: view operations ─────────────────────────────────────────────
 		{
-			// View exists only in target (Added); source_to_target must drop it.
+			// View exists only in target (Added); apply_to_target must drop it.
 			name:      "mysql_create_view",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Views: []diff.ViewDiff{{
@@ -381,9 +381,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"CREATE VIEW"},
 		},
 		{
-			// View exists only in source (Removed); source_to_target must create it in target.
+			// View exists only in source (Removed); apply_to_target must create it in target.
 			name:      "mysql_drop_view",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Views: []diff.ViewDiff{{
@@ -396,9 +396,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"DROP VIEW"},
 		},
 		{
-			// Modified view; source_to_target recreates it with source's definition.
+			// Modified view; apply_to_target recreates it with source's definition.
 			name:      "mysql_modify_view",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Views: []diff.ViewDiff{{
@@ -420,9 +420,9 @@ func TestGenerate(t *testing.T) {
 		},
 		// ── PostgreSQL: column operations ──────────────────────────────────────
 		{
-			// Column exists only in target (Added); source_to_target must drop it.
+			// Column exists only in target (Added); apply_to_target must drop it.
 			name:      "pg_add_column",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -439,9 +439,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"ADD COLUMN"},
 		},
 		{
-			// Column exists only in source (Removed); source_to_target must add it to target.
+			// Column exists only in source (Removed); apply_to_target must add it to target.
 			name:      "pg_drop_column",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -458,9 +458,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"DROP COLUMN"},
 		},
 		{
-			// source_to_target: target gets source's type (int, not int8).
+			// apply_to_target: target gets source's type (int, not int8).
 			name:      "pg_modify_type_only",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -478,10 +478,10 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"int8", "SET NOT NULL", "DROP NOT NULL", "SET DEFAULT", "DROP DEFAULT"},
 		},
 		{
-			// source_to_target: target gets source's nullability (NOT NULL).
+			// apply_to_target: target gets source's nullability (NOT NULL).
 			// Source is NOT NULL (false), target is NULL (true).
 			name:      "pg_modify_nullable_to_null",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -499,10 +499,10 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"TYPE", "DROP NOT NULL", "SET DEFAULT", "DROP DEFAULT"},
 		},
 		{
-			// source_to_target: target gets source's nullability (NULL).
+			// apply_to_target: target gets source's nullability (NULL).
 			// Source is NULL (true), target is NOT NULL (false).
 			name:      "pg_modify_nullable_to_not_null",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -520,10 +520,10 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"TYPE", "SET NOT NULL", "SET DEFAULT", "DROP DEFAULT"},
 		},
 		{
-			// source_to_target: target gets source's default (none → DROP DEFAULT).
+			// apply_to_target: target gets source's default (none → DROP DEFAULT).
 			// Source has no default; target has default 0.
 			name:      "pg_modify_set_default",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -541,10 +541,10 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"TYPE", "SET NOT NULL", "DROP NOT NULL", "SET DEFAULT"},
 		},
 		{
-			// source_to_target: target gets source's default (0 → SET DEFAULT 0).
+			// apply_to_target: target gets source's default (0 → SET DEFAULT 0).
 			// Source has default 0; target has no default.
 			name:      "pg_modify_drop_default",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -562,9 +562,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"TYPE", "SET NOT NULL", "DROP NOT NULL", "DROP DEFAULT"},
 		},
 		{
-			// source_to_target: all three changes use source definition.
+			// apply_to_target: all three changes use source definition.
 			name:      "pg_modify_all_three",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -587,9 +587,9 @@ func TestGenerate(t *testing.T) {
 		},
 		// ── PostgreSQL: index operations ───────────────────────────────────────
 		{
-			// Index exists only in target (Added); source_to_target must drop it.
+			// Index exists only in target (Added); apply_to_target must drop it.
 			name:      "pg_create_index",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -606,9 +606,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"CREATE INDEX"},
 		},
 		{
-			// Index exists only in source (Removed); source_to_target must create it in target.
+			// Index exists only in source (Removed); apply_to_target must create it in target.
 			name:      "pg_drop_index",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -626,9 +626,9 @@ func TestGenerate(t *testing.T) {
 		},
 		// ── PostgreSQL: constraint operations ──────────────────────────────────
 		{
-			// FK exists only in target (Added); source_to_target must drop it.
+			// FK exists only in target (Added); apply_to_target must drop it.
 			name:      "pg_add_fk",
-			direction: "source_to_target",
+			direction: "apply_to_target",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -654,10 +654,10 @@ func TestGenerate(t *testing.T) {
 		},
 		// ── Direction reversal ─────────────────────────────────────────────────
 		{
-			// Column Added in target; target_to_source propagates target → source,
+			// Column Added in target; apply_to_source propagates target → source,
 			// so this column must be added to source.
 			name:      "mysql_reverse_add_becomes_drop",
-			direction: "target_to_source",
+			direction: "apply_to_source",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -674,10 +674,10 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"DROP COLUMN"},
 		},
 		{
-			// Table Removed (only in source); target_to_source propagates target → source,
+			// Table Removed (only in source); apply_to_source propagates target → source,
 			// so this table must be dropped from source.
 			name:      "mysql_reverse_table_removed_becomes_created",
-			direction: "target_to_source",
+			direction: "apply_to_source",
 			dialect:   "mysql",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -689,9 +689,9 @@ func TestGenerate(t *testing.T) {
 			wantAbsent:   []string{"CREATE TABLE"},
 		},
 		{
-			// Source: not nullable, Target: nullable; target_to_source → use target def → DROP NOT NULL.
+			// Source: not nullable, Target: nullable; apply_to_source → use target def → DROP NOT NULL.
 			name:      "pg_reverse_nullable",
-			direction: "target_to_source",
+			direction: "apply_to_source",
 			dialect:   "postgres",
 			result: &diff.DiffResult{
 				Tables: []diff.TableDiff{{
@@ -710,31 +710,31 @@ func TestGenerate(t *testing.T) {
 		},
 		// ── Header content ─────────────────────────────────────────────────────
 		{
-			name:      "header_source_to_target",
-			direction: "source_to_target",
+			name:      "header_apply_to_target",
+			direction: "apply_to_target",
 			dialect:   "mysql",
 			result:    &diff.DiffResult{SourceName: "src_db", TargetName: "tgt_db"},
 			wantContains: []string{
 				"-- Generated by db-diff: src_db \u2192 tgt_db",
 				"-- Dialect: mysql",
-				"-- Direction: source_to_target",
+				"-- Direction: apply_to_target",
 			},
 		},
 		{
-			name:      "header_target_to_source",
-			direction: "target_to_source",
+			name:      "header_apply_to_source",
+			direction: "apply_to_source",
 			dialect:   "mysql",
 			result:    &diff.DiffResult{SourceName: "src_db", TargetName: "tgt_db"},
 			wantContains: []string{
 				"-- Generated by db-diff: tgt_db \u2192 src_db",
 				"-- Dialect: mysql",
-				"-- Direction: target_to_source",
+				"-- Direction: apply_to_source",
 			},
 		},
 		// ── Edge cases ────────────────────────────────────────────────────────
 		{
 			name:         "no_sql_when_identical",
-			direction:    "source_to_target",
+			direction:    "apply_to_target",
 			dialect:      "mysql",
 			result:       &diff.DiffResult{SourceName: "src", TargetName: "tgt"},
 			wantContains: []string{"-- Generated by db-diff:", "-- Dialect:", "-- Direction:"},
@@ -801,7 +801,7 @@ func TestGenerateFiltered(t *testing.T) {
 		wantAbsent   []string
 	}{
 		{
-			// source_to_target: bio Added in target → DROP COLUMN bio.
+			// apply_to_target: bio Added in target → DROP COLUMN bio.
 			// age/email unchanged in selection.
 			name: "filter_one_column_of_three",
 			sel: Selection{
@@ -818,7 +818,7 @@ func TestGenerateFiltered(t *testing.T) {
 				Views:  []string{"user_orders"},
 			},
 			// orders table excluded; users included (all columns since no column filter);
-			// user_orders view included (Added in target → DROP VIEW with source_to_target).
+			// user_orders view included (Added in target → DROP VIEW with apply_to_target).
 			wantContains: []string{"`bio`", "`age`", "`email`", "user_orders"},
 			wantAbsent:   []string{"DROP TABLE `orders`", "-- TABLE: orders"},
 		},
@@ -828,19 +828,19 @@ func TestGenerateFiltered(t *testing.T) {
 			wantContains: []string{
 				"-- Generated by db-diff:",
 				"-- Dialect: mysql",
-				"-- Direction: source_to_target",
+				"-- Direction: apply_to_target",
 			},
 			wantAbsent: []string{"ALTER TABLE", "DROP TABLE", "CREATE VIEW"},
 		},
 		{
-			// source_to_target: view Added in target → DROP VIEW.
+			// apply_to_target: view Added in target → DROP VIEW.
 			name:         "select_view_only",
 			sel:          Selection{Views: []string{"user_orders"}},
 			wantContains: []string{"DROP VIEW `user_orders`"},
 			wantAbsent:   []string{"ALTER TABLE", "DROP TABLE", "CREATE VIEW"},
 		},
 		{
-			// source_to_target: table Removed (only in source) → CREATE TABLE placeholder.
+			// apply_to_target: table Removed (only in source) → CREATE TABLE placeholder.
 			name:         "select_removed_table",
 			sel:          Selection{Tables: []string{"orders"}},
 			wantContains: []string{"-- CREATE TABLE orders"},
@@ -852,7 +852,7 @@ func TestGenerateFiltered(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := GenerateFiltered(baseResult, tt.sel, "source_to_target", "mysql")
+			got, err := GenerateFiltered(baseResult, tt.sel, "apply_to_target", "mysql")
 			if err != nil {
 				t.Fatalf("GenerateFiltered returned error: %v", err)
 			}

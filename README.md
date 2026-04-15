@@ -156,7 +156,7 @@ ignore:
 
 migrate:
   enabled: true
-  direction: "source_to_target"  # or target_to_source
+  direction: "apply_to_target"  # or apply_to_source
   output: "migrate.sql"
 ```
 
@@ -167,7 +167,7 @@ migrate:
   --source "mysql://user:pass@host1:3306/db" \
   --target "mysql://user:pass@host2:3306/db" \
   --migrate \
-  --migrate-direction source_to_target \
+  --migrate-direction apply_to_target \
   --migrate-output migration.sql
 ```
 
@@ -175,8 +175,8 @@ migrate:
 
 | Direction | Meaning | Apply SQL to |
 |-----------|---------|--------------|
-| `source_to_target` | Propagate source schema → target (make target match source) | TARGET database |
-| `target_to_source` | Propagate target schema → source (make source match target) | SOURCE database |
+| `apply_to_target` | Propagate source schema → target (make target match source) | TARGET database |
+| `apply_to_source` | Propagate target schema → source (make source match target) | SOURCE database |
 
 ### Filtering Options
 
@@ -317,7 +317,7 @@ Flags:
   --ignore-tables string    Comma-separated tables to exclude
   --ignore-fields string    Comma-separated columns to exclude
   --migrate                 Enable migration SQL generation
-  --migrate-direction string "source_to_target" or "target_to_source" (default: source_to_target)
+  --migrate-direction string "apply_to_target" or "apply_to_source" (default: apply_to_target)
   --migrate-output string   Migration file path (default: migrate.sql)
   -h, --help                Show help message
 ```

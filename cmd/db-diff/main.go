@@ -95,7 +95,7 @@ func compareCmd() *cobra.Command {
 
 	// Migrate
 	cmd.Flags().BoolVar(&flags.Migrate, "migrate", false, "generate migration SQL file")
-	cmd.Flags().StringVar(&flags.MigrateDirection, "migrate-direction", "", `"source_to_target" or "target_to_source" (default: source_to_target)`)
+	cmd.Flags().StringVar(&flags.MigrateDirection, "migrate-direction", "", `"apply_to_target" or "apply_to_source" (default: apply_to_target)`)
 	cmd.Flags().StringVar(&flags.MigrateOutput, "migrate-output", "", "output file for migration SQL (default: migrate.sql)")
 
 	return cmd
