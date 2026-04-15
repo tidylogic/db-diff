@@ -439,6 +439,7 @@ mysql -h <host> -u <user> -p<password>
 - Database user requires following permissions:
   - MySQL: `SELECT` (information_schema)
   - PostgreSQL: `CONNECT`, `USAGE` (schema)
+- If the connected user lacks `SELECT` privilege on a view, PostgreSQL returns NULL for `view_definition` in `information_schema.views`. This is handled gracefully — the view is recorded with an empty definition.
 
 ## Support
 

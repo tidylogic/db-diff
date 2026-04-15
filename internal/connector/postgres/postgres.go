@@ -319,11 +319,12 @@ func (c *Connector) extractViews(s *schema.Schema, schemaName string) error {
 	defer rows.Close()
 
 	for rows.Next() {
-		var name, def string
+		var name string
+		var def sql.NullString
 		if err := rows.Scan(&name, &def); err != nil {
 			return fmt.Errorf("postgres: scanning view row: %w", err)
 		}
-		s.Views[name] = schema.View{Name: name, Definition: def}
+		s.Views[name] = schema.View{Name: name, Definition: def.String}
 	}
 	return rows.Err()
 }
