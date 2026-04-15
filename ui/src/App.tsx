@@ -247,8 +247,30 @@ export default function App() {
     })
   }, [])
 
-  const selectAll = useCallback(() => {
-    if (diffResult) setSelection(buildInitialSelection(diffResult))
+  const selectAll = useCallback((tableNames: string[], viewNames: string[]) => {
+    if (!diffResult) return
+    setSelection((prev) => {
+      const tables = new Set(prev.tables)
+      const views = new Set(prev.views)
+      const columns = { ...prev.columns }
+      const indexes = { ...prev.indexes }
+      const constraints = { ...prev.constraints }
+
+      for (const name of tableNames) {
+        tables.add(name)
+        const td = diffResult.Tables.find((t) => t.Name === name)
+        if (td?.Change === 'modified') {
+          columns[name] = new Set(td.Columns.map((c) => c.Name))
+          indexes[name] = new Set(td.Indexes.map((i) => i.Name))
+          constraints[name] = new Set(td.Constraints.map((c) => c.Name))
+        }
+      }
+      for (const name of viewNames) {
+        views.add(name)
+      }
+
+      return { tables, columns, indexes, constraints, views }
+    })
   }, [diffResult])
 
   const deselectAll = useCallback(() => {
