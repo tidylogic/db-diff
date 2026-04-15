@@ -24,7 +24,7 @@ type IgnoreConfig struct {
 // MigrateConfig controls DDL migration SQL generation.
 type MigrateConfig struct {
 	Enabled    bool   `yaml:"enabled"`
-	Direction  string `yaml:"direction"`   // "source_to_target" | "target_to_source"
+	Direction  string `yaml:"direction"`   // "apply_to_target" | "apply_to_source"
 	OutputFile string `yaml:"output_file"` // default: "migrate.sql"
 }
 
@@ -59,7 +59,7 @@ func Default() *Config {
 	return &Config{
 		Output: "table",
 		Migrate: MigrateConfig{
-			Direction:  "source_to_target",
+			Direction:  "apply_to_target",
 			OutputFile: "migrate.sql",
 		},
 	}
@@ -93,7 +93,7 @@ func Load(path string) (*Config, error) {
 		cfg.Migrate.OutputFile = "migrate.sql"
 	}
 	if cfg.Migrate.Direction == "" {
-		cfg.Migrate.Direction = "source_to_target"
+		cfg.Migrate.Direction = "apply_to_target"
 	}
 	if cfg.Output == "" {
 		cfg.Output = "table"

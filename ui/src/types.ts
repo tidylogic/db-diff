@@ -1,7 +1,7 @@
 // ── Change types ─────────────────────────────────────────────────────────────
 
 export type ChangeType = 'added' | 'removed' | 'modified'
-export type Direction = 'source_to_target' | 'target_to_source'
+export type Direction = 'apply_to_target' | 'apply_to_source'
 export type Dialect = 'mysql' | 'postgres'
 
 // ── Schema primitives (matching internal/schema/types.go) ────────────────────

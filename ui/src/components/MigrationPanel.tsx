@@ -99,9 +99,9 @@ export function MigrationPanel({
     const a = document.createElement('a')
     a.href = url
     const src =
-      direction === 'source_to_target' ? result.SourceName : result.TargetName
+      direction === 'apply_to_target' ? result.SourceName : result.TargetName
     const tgt =
-      direction === 'source_to_target' ? result.TargetName : result.SourceName
+      direction === 'apply_to_target' ? result.TargetName : result.SourceName
     a.download = `migrate_${src}_to_${tgt}.sql`.replace(
       /[^a-zA-Z0-9_.-]/g,
       '_',
@@ -111,9 +111,9 @@ export function MigrationPanel({
   }
 
   const srcLabel =
-    direction === 'source_to_target' ? result.SourceName : result.TargetName
+    direction === 'apply_to_target' ? result.SourceName : result.TargetName
   const tgtLabel =
-    direction === 'source_to_target' ? result.TargetName : result.SourceName
+    direction === 'apply_to_target' ? result.TargetName : result.SourceName
 
   return (
     <div
@@ -132,14 +132,14 @@ export function MigrationPanel({
           </span>
           <div className="flex gap-1">
             <Btn
-              active={direction === 'source_to_target'}
-              onClick={() => onDirectionChange('source_to_target')}
+              active={direction === 'apply_to_target'}
+              onClick={() => onDirectionChange('apply_to_target')}
             >
               {result.SourceName} → {result.TargetName}
             </Btn>
             <Btn
-              active={direction === 'target_to_source'}
-              onClick={() => onDirectionChange('target_to_source')}
+              active={direction === 'apply_to_source'}
+              onClick={() => onDirectionChange('apply_to_source')}
             >
               {result.TargetName} → {result.SourceName}
             </Btn>

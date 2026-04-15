@@ -209,7 +209,7 @@ export default function App() {
     type: 'table' | 'view'
     name: string
   } | null>(null)
-  const [direction, setDirection] = useState<Direction>('source_to_target')
+  const [direction, setDirection] = useState<Direction>('apply_to_target')
   const [dialect, setDialect] = useState<Dialect>('mysql')
 
   const handleLoad = useCallback((result: DiffResult) => {

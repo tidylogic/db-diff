@@ -156,7 +156,7 @@ ignore:
 
 migrate:
   enabled: true
-  direction: "source_to_target"  # target_to_source도 가능
+  direction: "apply_to_target"  # apply_to_source도 가능
   output: "migrate.sql"
 ```
 
@@ -167,7 +167,7 @@ migrate:
   --source "mysql://user:pass@host1:3306/db" \
   --target "mysql://user:pass@host2:3306/db" \
   --migrate \
-  --migrate-direction source_to_target \
+  --migrate-direction apply_to_target \
   --migrate-output migration.sql
 ```
 
@@ -175,8 +175,8 @@ migrate:
 
 | 방향 | 의미 | SQL 적용 대상 |
 |------|------|--------------|
-| `source_to_target` | source 스키마 → target으로 전파 (target을 source에 맞춤) | TARGET 데이터베이스 |
-| `target_to_source` | target 스키마 → source로 전파 (source를 target에 맞춤) | SOURCE 데이터베이스 |
+| `apply_to_target` | source 스키마 → target으로 전파 (target을 source에 맞춤) | TARGET 데이터베이스 |
+| `apply_to_source` | target 스키마 → source로 전파 (source를 target에 맞춤) | SOURCE 데이터베이스 |
 
 ### 필터링 옵션
 
@@ -317,7 +317,7 @@ Flags:
   --ignore-tables string    제외할 테이블 목록 (쉼표 구분)
   --ignore-fields string    제외할 컬럼 목록 (쉼표 구분)
   --migrate                 마이그레이션 SQL 생성 활성화
-  --migrate-direction string "source_to_target" 또는 "target_to_source" (기본: source_to_target)
+  --migrate-direction string "apply_to_target" 또는 "apply_to_source" (기본: apply_to_target)
   --migrate-output string   마이그레이션 파일 경로 (기본: migrate.sql)
   -h, --help                도움말 표시
 ```
