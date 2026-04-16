@@ -144,11 +144,27 @@ func TestCompare(t *testing.T) {
 				if len(r.Tables) != 1 {
 					t.Fatalf("expected 1 table diff, got %d", len(r.Tables))
 				}
-				if r.Tables[0].Change != Added {
-					t.Errorf("expected Added, got %s", r.Tables[0].Change)
+				td := r.Tables[0]
+				if td.Change != Added {
+					t.Errorf("expected Added, got %s", td.Change)
 				}
-				if r.Tables[0].Name != "users" {
-					t.Errorf("expected table name 'users', got %s", r.Tables[0].Name)
+				if td.Name != "users" {
+					t.Errorf("expected table name 'users', got %s", td.Name)
+				}
+				// Columns should be populated with Added diffs pointing to Target.
+				if len(td.Columns) != len(usersTable.Columns) {
+					t.Errorf("expected %d column diffs, got %d", len(usersTable.Columns), len(td.Columns))
+				}
+				for _, cd := range td.Columns {
+					if cd.Change != Added {
+						t.Errorf("column %q: expected Added, got %s", cd.Name, cd.Change)
+					}
+					if cd.Target == nil {
+						t.Errorf("column %q: Target should not be nil for Added column", cd.Name)
+					}
+					if cd.Source != nil {
+						t.Errorf("column %q: Source should be nil for Added column", cd.Name)
+					}
 				}
 			},
 		},
@@ -163,8 +179,24 @@ func TestCompare(t *testing.T) {
 				if len(r.Tables) != 1 {
 					t.Fatalf("expected 1 table diff, got %d", len(r.Tables))
 				}
-				if r.Tables[0].Change != Removed {
-					t.Errorf("expected Removed, got %s", r.Tables[0].Change)
+				td := r.Tables[0]
+				if td.Change != Removed {
+					t.Errorf("expected Removed, got %s", td.Change)
+				}
+				// Columns should be populated with Removed diffs pointing to Source.
+				if len(td.Columns) != len(usersTable.Columns) {
+					t.Errorf("expected %d column diffs, got %d", len(usersTable.Columns), len(td.Columns))
+				}
+				for _, cd := range td.Columns {
+					if cd.Change != Removed {
+						t.Errorf("column %q: expected Removed, got %s", cd.Name, cd.Change)
+					}
+					if cd.Source == nil {
+						t.Errorf("column %q: Source should not be nil for Removed column", cd.Name)
+					}
+					if cd.Target != nil {
+						t.Errorf("column %q: Target should be nil for Removed column", cd.Name)
+					}
 				}
 			},
 		},

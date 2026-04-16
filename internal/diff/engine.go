@@ -31,28 +31,28 @@ func Compare(source, target *schema.Schema, ignore config.IgnoreConfig) *DiffRes
 				result.Tables = append(result.Tables, *td)
 			}
 		} else {
-			// Table only in source → Removed
+			// Table only in source → Removed (store full schema so CREATE TABLE can be generated)
 			result.Tables = append(result.Tables, TableDiff{
 				Name:        name,
 				Change:      Removed,
-				Columns:     []ColumnDiff{},
-				Indexes:     []IndexDiff{},
-				Constraints: []ConstraintDiff{},
+				Columns:     tableColumnDiffs(srcTable.Columns, Removed),
+				Indexes:     tableIndexDiffs(srcTable.Indexes, Removed),
+				Constraints: tableConstraintDiffs(srcTable.Constraints, Removed),
 			})
 		}
 	}
-	for name := range target.Tables {
+	for name, tgtTable := range target.Tables {
 		if ignoreTableSet[name] {
 			continue
 		}
 		if _, ok := source.Tables[name]; !ok {
-			// Table only in target → Added
+			// Table only in target → Added (store full schema so CREATE TABLE can be generated)
 			result.Tables = append(result.Tables, TableDiff{
 				Name:        name,
 				Change:      Added,
-				Columns:     []ColumnDiff{},
-				Indexes:     []IndexDiff{},
-				Constraints: []ConstraintDiff{},
+				Columns:     tableColumnDiffs(tgtTable.Columns, Added),
+				Indexes:     tableIndexDiffs(tgtTable.Indexes, Added),
+				Constraints: tableConstraintDiffs(tgtTable.Constraints, Added),
 			})
 		}
 	}
@@ -316,4 +316,55 @@ func toSet(ss []string) map[string]bool {
 // normalizeSQL strips extra whitespace for view definition comparison.
 func normalizeSQL(s string) string {
 	return strings.Join(strings.Fields(s), " ")
+}
+
+// tableColumnDiffs converts a slice of schema.Column to ColumnDiff entries for
+// a wholly Added or Removed table (all columns share the same change type).
+func tableColumnDiffs(cols []schema.Column, change ChangeType) []ColumnDiff {
+	diffs := make([]ColumnDiff, len(cols))
+	for i, c := range cols {
+		cc := c
+		d := ColumnDiff{Name: c.Name, Change: change}
+		if change == Added {
+			d.Target = &cc
+		} else {
+			d.Source = &cc
+		}
+		diffs[i] = d
+	}
+	return diffs
+}
+
+// tableIndexDiffs converts a slice of schema.Index to IndexDiff entries for
+// a wholly Added or Removed table.
+func tableIndexDiffs(idxs []schema.Index, change ChangeType) []IndexDiff {
+	diffs := make([]IndexDiff, len(idxs))
+	for i, idx := range idxs {
+		ii := idx
+		d := IndexDiff{Name: idx.Name, Change: change}
+		if change == Added {
+			d.Target = &ii
+		} else {
+			d.Source = &ii
+		}
+		diffs[i] = d
+	}
+	return diffs
+}
+
+// tableConstraintDiffs converts a slice of schema.Constraint to ConstraintDiff
+// entries for a wholly Added or Removed table.
+func tableConstraintDiffs(cons []schema.Constraint, change ChangeType) []ConstraintDiff {
+	diffs := make([]ConstraintDiff, len(cons))
+	for i, c := range cons {
+		cc := c
+		d := ConstraintDiff{Name: c.Name, Change: change}
+		if change == Added {
+			d.Target = &cc
+		} else {
+			d.Source = &cc
+		}
+		diffs[i] = d
+	}
+	return diffs
 }

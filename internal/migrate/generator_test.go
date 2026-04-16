@@ -175,8 +175,8 @@ func TestGenerate(t *testing.T) {
 		},
 		// ── MySQL: table operations ────────────────────────────────────────────
 		{
-			// Table exists only in source (Removed); apply_to_target must add it
-			// to target — emits a CREATE TABLE placeholder.
+			// Table exists only in source (Removed); apply_to_target must CREATE it
+			// in target using the column data stored in the diff.
 			name:      "mysql_drop_table",
 			direction: "apply_to_target",
 			dialect:   "mysql",
@@ -184,10 +184,41 @@ func TestGenerate(t *testing.T) {
 				Tables: []diff.TableDiff{{
 					Name:   "users",
 					Change: diff.Removed,
+					Columns: []diff.ColumnDiff{
+						{Name: "id", Change: diff.Removed, Source: colPtr("id", "int", false, nil)},
+						{Name: "name", Change: diff.Removed, Source: colPtr("name", "varchar(100)", false, nil)},
+					},
 				}},
 			},
-			wantContains: []string{"-- CREATE TABLE users"},
-			wantAbsent:   []string{"DROP TABLE"},
+			wantContains: []string{
+				"CREATE TABLE `users`",
+				"`id` int NOT NULL",
+				"`name` varchar(100) NOT NULL",
+			},
+			wantAbsent: []string{"DROP TABLE", "full DDL not available"},
+		},
+		{
+			// Table exists only in target (Added); apply_to_source must CREATE it
+			// in source using the column data stored in the diff.
+			name:      "mysql_add_table_apply_to_source",
+			direction: "apply_to_source",
+			dialect:   "mysql",
+			result: &diff.DiffResult{
+				Tables: []diff.TableDiff{{
+					Name:   "users",
+					Change: diff.Added,
+					Columns: []diff.ColumnDiff{
+						{Name: "id", Change: diff.Added, Target: colPtr("id", "int", false, nil)},
+						{Name: "email", Change: diff.Added, Target: colPtr("email", "varchar(255)", false, nil)},
+					},
+				}},
+			},
+			wantContains: []string{
+				"CREATE TABLE `users`",
+				"`id` int NOT NULL",
+				"`email` varchar(255) NOT NULL",
+			},
+			wantAbsent: []string{"DROP TABLE", "full DDL not available"},
 		},
 		{
 			// Table exists only in target (Added); apply_to_target must drop it
@@ -786,6 +817,10 @@ func TestGenerateFiltered(t *testing.T) {
 			{
 				Name:   "orders",
 				Change: diff.Removed,
+				Columns: []diff.ColumnDiff{
+					{Name: "id", Change: diff.Removed, Source: colPtr("id", "int", false, nil)},
+					{Name: "total", Change: diff.Removed, Source: colPtr("total", "decimal(10,2)", false, nil)},
+				},
 			},
 		},
 		Views: []diff.ViewDiff{
@@ -840,11 +875,11 @@ func TestGenerateFiltered(t *testing.T) {
 			wantAbsent:   []string{"ALTER TABLE", "DROP TABLE", "CREATE VIEW"},
 		},
 		{
-			// apply_to_target: table Removed (only in source) → CREATE TABLE placeholder.
+			// apply_to_target: table Removed (only in source) → proper CREATE TABLE.
 			name:         "select_removed_table",
 			sel:          Selection{Tables: []string{"orders"}},
-			wantContains: []string{"-- CREATE TABLE orders"},
-			wantAbsent:   []string{"users", "user_orders", "DROP TABLE"},
+			wantContains: []string{"CREATE TABLE `orders`", "`id` int NOT NULL", "`total` decimal(10,2) NOT NULL"},
+			wantAbsent:   []string{"users", "user_orders", "DROP TABLE", "full DDL not available"},
 		},
 	}
 
