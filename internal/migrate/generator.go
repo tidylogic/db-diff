@@ -74,9 +74,14 @@ func tableStmts(td diff.TableDiff, direction, dialect string) ([]string, error) 
 
 	switch change {
 	case diff.Added:
-		// We need to CREATE the table — but we only have structural diffs here,
-		// not the full column list. Emit a placeholder notice.
-		stmts = append(stmts, fmt.Sprintf("-- CREATE TABLE %s  (full DDL not available in diff-only mode)", td.Name))
+		// Build a proper CREATE TABLE from the column data stored in the diff.
+		// Falls back to a placeholder comment only for old diffs with no column data.
+		createStmts := buildCreateTableStmts(td, dialect)
+		if len(createStmts) == 0 {
+			stmts = append(stmts, fmt.Sprintf("-- CREATE TABLE %s  (full DDL not available — regenerate diff with a newer version)", td.Name))
+		} else {
+			stmts = append(stmts, createStmts...)
+		}
 
 	case diff.Removed:
 		stmts = append(stmts, fmt.Sprintf("DROP TABLE %s", quoteIdent(td.Name, dialect)))
@@ -373,6 +378,112 @@ func viewStmts(vd diff.ViewDiff, direction, dialect string) []string {
 		}
 	}
 	return nil
+}
+
+// buildCreateTableStmts produces a CREATE TABLE statement (plus separate
+// CREATE INDEX and ALTER TABLE ADD CONSTRAINT statements) from the column data
+// embedded in an Added TableDiff. For an inverted Removed table the column
+// definitions live in cd.Source; for a naturally Added table they live in
+// cd.Target. We use a nil-safe fallback so both cases are handled uniformly.
+//
+// Returns nil when no column data is available (old diff format without schema
+// snapshots), so the caller can fall back to a placeholder comment.
+func buildCreateTableStmts(td diff.TableDiff, dialect string) []string {
+	if len(td.Columns) == 0 {
+		return nil
+	}
+
+	t := quoteIdent(td.Name, dialect)
+	var colParts []string
+
+	for _, cd := range td.Columns {
+		c := cd.Target
+		if c == nil {
+			c = cd.Source
+		}
+		if c == nil {
+			continue
+		}
+		nullStr := " NOT NULL"
+		if c.Nullable {
+			nullStr = " NULL"
+		}
+		defStr := ""
+		if c.Default != nil {
+			defStr = " DEFAULT " + *c.Default
+		}
+		colParts = append(colParts, fmt.Sprintf("  %s %s%s%s",
+			quoteIdent(c.Name, dialect), c.RawType, nullStr, defStr))
+	}
+
+	if len(colParts) == 0 {
+		return nil
+	}
+
+	// Inline PRIMARY KEY clause — check Constraints first, then Indexes.
+	pkAdded := false
+	for _, cd := range td.Constraints {
+		c := cd.Target
+		if c == nil {
+			c = cd.Source
+		}
+		if c == nil || c.Type != "PRIMARY KEY" {
+			continue
+		}
+		cols := make([]string, len(c.Columns))
+		for i, col := range c.Columns {
+			cols[i] = quoteIdent(col, dialect)
+		}
+		colParts = append(colParts, fmt.Sprintf("  PRIMARY KEY (%s)", strings.Join(cols, ", ")))
+		pkAdded = true
+		break
+	}
+	if !pkAdded {
+		for _, id := range td.Indexes {
+			idx := id.Target
+			if idx == nil {
+				idx = id.Source
+			}
+			if idx == nil || !idx.IsPrimary {
+				continue
+			}
+			cols := make([]string, len(idx.Columns))
+			for i, col := range idx.Columns {
+				cols[i] = quoteIdent(col, dialect)
+			}
+			colParts = append(colParts, fmt.Sprintf("  PRIMARY KEY (%s)", strings.Join(cols, ", ")))
+			break
+		}
+	}
+
+	var stmts []string
+	stmts = append(stmts, fmt.Sprintf("CREATE TABLE %s (\n%s\n)", t, strings.Join(colParts, ",\n")))
+
+	// Non-PK indexes as separate CREATE INDEX statements.
+	for _, id := range td.Indexes {
+		idx := id.Target
+		if idx == nil {
+			idx = id.Source
+		}
+		if idx == nil || idx.IsPrimary {
+			continue
+		}
+		stmts = append(stmts, createIndexStmt(td.Name, idx, dialect))
+	}
+
+	// Non-PK constraints as separate ALTER TABLE ADD CONSTRAINT statements.
+	for _, cd := range td.Constraints {
+		c := cd.Target
+		if c == nil {
+			c = cd.Source
+		}
+		if c == nil || c.Type == "PRIMARY KEY" {
+			continue
+		}
+		stmts = append(stmts, addConstraintSQL(t, c, dialect))
+	}
+
+	return stmts
 }
 
 // invertChange flips Added↔Removed; Modified stays Modified.

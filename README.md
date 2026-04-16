@@ -459,6 +459,7 @@ mysql -h <host> -u <user> -p<password>
 ### Unreleased
 - Fixed: PostgreSQL `view_definition` NULL error when user lacks SELECT privilege on a view
 - Fixed: Web UI crash (`Cannot read properties of null`) when loading JSON with null Columns/Indexes/Constraints arrays
+- Fixed: Migration SQL for wholly added/removed tables now generates a proper `CREATE TABLE` statement instead of a commented-out placeholder. Also fixes the web GUI showing a blank migration panel when selecting a target-only table with `apply_to_source`.
 
 ### v0.1.0 (Initial Release)
 - Basic MySQL and PostgreSQL support
