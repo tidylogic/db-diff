@@ -456,6 +456,7 @@ mysql -h <host> -u <user> -p<password>
 ### 미출시
 - 수정: 뷰에 SELECT 권한이 없을 때 PostgreSQL `view_definition` NULL 오류 수정
 - 수정: Columns/Indexes/Constraints가 null인 JSON 로드 시 웹 UI 크래시 수정
+- 수정: 추가/삭제된 테이블의 마이그레이션 SQL이 주석 처리된 플레이스홀더 대신 올바른 `CREATE TABLE` 구문을 생성합니다. `apply_to_source` 방향으로 target-only 테이블 선택 시 마이그레이션 패널이 빈 화면으로 표시되던 버그도 함께 수정됩니다.
 
 ### v0.1.0 (초기 릴리스)
 - MySQL 및 PostgreSQL 기본 지원
