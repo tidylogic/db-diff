@@ -10,6 +10,8 @@
 
 `db-diff` is a CLI tool that detects and visualizes database schema differences across different environments (Dev, QA, Prod). It helps developers, DBAs, and DevOps engineers maintain database consistency.
 
+<img width="1920" height="1051" alt="image-4" src="https://github.com/user-attachments/assets/1687751b-1bd7-4938-92fb-2b98b59c623b" />
+
 ### Key Features
 
 - **Multi-Database Support**: MySQL and PostgreSQL (extensible architecture)
