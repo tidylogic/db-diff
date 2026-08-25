@@ -165,9 +165,16 @@ func columnStmt(table string, cd diff.ColumnDiff, change diff.ChangeType, direct
 		defStr = " DEFAULT " + *colDef.Default
 	}
 	colSpec := fmt.Sprintf("%s%s%s", typeDef, nullStr, defStr)
+	commentChanged := cd.Source != nil && cd.Target != nil && cd.Source.Comment != cd.Target.Comment
 
 	switch dialect {
 	case "mysql":
+		// MySQL requires the full column definition when changing a comment.
+		// Preserve an existing comment on other modifications, and emit an
+		// explicit empty comment when the desired state removes it.
+		if colDef.Comment != "" || commentChanged {
+			colSpec += " COMMENT " + quoteStringLiteral(colDef.Comment)
+		}
 		switch change {
 		case diff.Added:
 			return fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", t, col, colSpec), nil
@@ -196,6 +203,13 @@ func columnStmt(table string, cd diff.ColumnDiff, change diff.ChangeType, direct
 				} else {
 					stmts = append(stmts, fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s DROP DEFAULT", t, col))
 				}
+			}
+			if commentChanged {
+				comment := "NULL"
+				if colDef.Comment != "" {
+					comment = quoteStringLiteral(colDef.Comment)
+				}
+				stmts = append(stmts, fmt.Sprintf("COMMENT ON COLUMN %s.%s IS %s", t, col, comment))
 			}
 			return strings.Join(stmts, ";\n"), nil
 		}
@@ -505,6 +519,10 @@ func quoteIdent(name, dialect string) string {
 	default: // mysql and others
 		return "`" + strings.ReplaceAll(name, "`", "``") + "`"
 	}
+}
+
+func quoteStringLiteral(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
 }
 
 // ── Selection / GenerateFiltered ──────────────────────────────────────────────

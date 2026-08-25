@@ -55,7 +55,19 @@ function SectionHeader({
 
 // ── Column row ────────────────────────────────────────────────────────────────
 
-function ColumnRow({ cd, checked, onToggle }: { cd: ColumnDiff; checked: boolean; onToggle: () => void }) {
+function ColumnRow({
+  cd,
+  checked,
+  sourceName,
+  targetName,
+  onToggle,
+}: {
+  cd: ColumnDiff
+  checked: boolean
+  sourceName: string
+  targetName: string
+  onToggle: () => void
+}) {
   const src = cd.Source
   const tgt = cd.Target
 
@@ -79,6 +91,15 @@ function ColumnRow({ cd, checked, onToggle }: { cd: ColumnDiff; checked: boolean
           <div className="mt-1 text-xs space-y-0.5">
             {cd.Change === 'modified' && src && tgt && (
               <>
+                <div className="flex items-center gap-1.5 flex-wrap pb-0.5 text-[10px]">
+                  <span className="text-red-500 dark:text-red-400">
+                    Source ({sourceName})
+                  </span>
+                  <span className="text-gray-300 dark:text-gray-600">→</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">
+                    Target ({targetName})
+                  </span>
+                </div>
                 {src.RawType !== tgt.RawType && (
                   <div className="flex items-center gap-1.5">
                     <span className="text-gray-400 dark:text-gray-600 w-12 text-[10px]">type</span>
@@ -111,7 +132,7 @@ function ColumnRow({ cd, checked, onToggle }: { cd: ColumnDiff; checked: boolean
                     </span>
                   </div>
                 )}
-                {src.Comment !== tgt.Comment && src.Comment !== '' || tgt.Comment !== '' && src.Comment !== tgt.Comment ? (
+                {src.Comment !== tgt.Comment ? (
                   <div className="flex items-center gap-1.5">
                     <span className="text-gray-400 dark:text-gray-600 w-12 text-[10px]">comment</span>
                     <span className="line-through text-red-500 dark:text-red-400 opacity-80">{src.Comment || '—'}</span>
@@ -218,12 +239,14 @@ function ConstraintRow({ cd, checked, onToggle }: { cd: ConstraintDiff; checked:
 // ── Table detail ──────────────────────────────────────────────────────────────
 
 function TableDetail({
-  td, selection,
+  td, selection, sourceName, targetName,
   onToggleColumn, onToggleIndex, onToggleConstraint,
   onToggleAllColumns, onToggleAllIndexes, onToggleAllConstraints,
 }: {
   td: TableDiff
   selection: SelectionState
+  sourceName: string
+  targetName: string
   onToggleColumn: (c: string) => void
   onToggleIndex: (i: string) => void
   onToggleConstraint: (c: string) => void
@@ -263,7 +286,14 @@ function TableDetail({
         onToggleAll={onToggleAllColumns}
       />
       {td.Columns.map((cd) => (
-        <ColumnRow key={cd.Name} cd={cd} checked={selCols.has(cd.Name)} onToggle={() => onToggleColumn(cd.Name)} />
+        <ColumnRow
+          key={cd.Name}
+          cd={cd}
+          checked={selCols.has(cd.Name)}
+          sourceName={sourceName}
+          targetName={targetName}
+          onToggle={() => onToggleColumn(cd.Name)}
+        />
       ))}
 
       {td.Indexes.length > 0 && (
@@ -369,6 +399,8 @@ export function DetailPanel({
         </div>
         <TableDetail
           td={td} selection={selection}
+          sourceName={result.SourceName}
+          targetName={result.TargetName}
           onToggleColumn={(c) => onToggleColumn(td.Name, c)}
           onToggleIndex={(i) => onToggleIndex(td.Name, i)}
           onToggleConstraint={(c) => onToggleConstraint(td.Name, c)}
