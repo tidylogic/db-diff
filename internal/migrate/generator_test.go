@@ -22,6 +22,12 @@ func colPtr(name, rawType string, nullable bool, def *string) *schema.Column {
 	}
 }
 
+func colPtrWithComment(name, rawType string, nullable bool, comment string) *schema.Column {
+	c := colPtr(name, rawType, nullable, nil)
+	c.Comment = comment
+	return c
+}
+
 func mustContain(t *testing.T, got string, wants []string) {
 	t.Helper()
 	for _, w := range wants {
@@ -782,6 +788,150 @@ func TestGenerate(t *testing.T) {
 				t.Fatalf("Generate returned error: %v", err)
 			}
 			mustContain(t, got, tt.wantContains)
+			mustNotContain(t, got, tt.wantAbsent)
+		})
+	}
+}
+
+func TestGenerateModifiedColumnComments(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		direction  string
+		dialect    string
+		source     *schema.Column
+		target     *schema.Column
+		want       string
+		wantAbsent []string
+	}{
+		{
+			name:      "mysql_add_comment_to_target",
+			direction: "apply_to_target",
+			dialect:   "mysql",
+			source:    colPtrWithComment("image_url", "text", false, "AI avatar image URL"),
+			target:    colPtrWithComment("image_url", "text", false, ""),
+			want:      "ALTER TABLE `ai_avatar_valid` MODIFY COLUMN `image_url` text NOT NULL COMMENT 'AI avatar image URL'",
+		},
+		{
+			name:      "mysql_add_comment_to_source",
+			direction: "apply_to_source",
+			dialect:   "mysql",
+			source:    colPtrWithComment("image_url", "text", false, ""),
+			target:    colPtrWithComment("image_url", "text", false, "AI avatar image URL"),
+			want:      "COMMENT 'AI avatar image URL'",
+		},
+		{
+			name:      "mysql_modify_comment_on_target",
+			direction: "apply_to_target",
+			dialect:   "mysql",
+			source:    colPtrWithComment("image_url", "text", false, "new comment"),
+			target:    colPtrWithComment("image_url", "text", false, "old comment"),
+			want:      "COMMENT 'new comment'",
+		},
+		{
+			name:      "mysql_modify_comment_on_source",
+			direction: "apply_to_source",
+			dialect:   "mysql",
+			source:    colPtrWithComment("image_url", "text", false, "old comment"),
+			target:    colPtrWithComment("image_url", "text", false, "owner's avatar"),
+			want:      "COMMENT 'owner''s avatar'",
+		},
+		{
+			name:      "mysql_delete_comment_from_target",
+			direction: "apply_to_target",
+			dialect:   "mysql",
+			source:    colPtrWithComment("image_url", "text", false, ""),
+			target:    colPtrWithComment("image_url", "text", false, "obsolete"),
+			want:      "COMMENT ''",
+		},
+		{
+			name:      "mysql_delete_comment_from_source",
+			direction: "apply_to_source",
+			dialect:   "mysql",
+			source:    colPtrWithComment("image_url", "text", false, "obsolete"),
+			target:    colPtrWithComment("image_url", "text", false, ""),
+			want:      "COMMENT ''",
+		},
+		{
+			name:       "postgres_add_comment_to_target",
+			direction:  "apply_to_target",
+			dialect:    "postgres",
+			source:     colPtrWithComment("image_url", "text", false, "owner's avatar"),
+			target:     colPtrWithComment("image_url", "text", false, ""),
+			want:       `COMMENT ON COLUMN "ai_avatar_valid"."image_url" IS 'owner''s avatar'`,
+			wantAbsent: []string{"ALTER COLUMN"},
+		},
+		{
+			name:       "postgres_add_comment_to_source",
+			direction:  "apply_to_source",
+			dialect:    "postgres",
+			source:     colPtrWithComment("image_url", "text", false, ""),
+			target:     colPtrWithComment("image_url", "text", false, "new comment"),
+			want:       `COMMENT ON COLUMN "ai_avatar_valid"."image_url" IS 'new comment'`,
+			wantAbsent: []string{"ALTER COLUMN"},
+		},
+		{
+			name:       "postgres_modify_comment_on_target",
+			direction:  "apply_to_target",
+			dialect:    "postgres",
+			source:     colPtrWithComment("image_url", "text", false, "new comment"),
+			target:     colPtrWithComment("image_url", "text", false, "old comment"),
+			want:       `COMMENT ON COLUMN "ai_avatar_valid"."image_url" IS 'new comment'`,
+			wantAbsent: []string{"ALTER COLUMN"},
+		},
+		{
+			name:       "postgres_modify_comment_on_source",
+			direction:  "apply_to_source",
+			dialect:    "postgres",
+			source:     colPtrWithComment("image_url", "text", false, "old comment"),
+			target:     colPtrWithComment("image_url", "text", false, "new comment"),
+			want:       `COMMENT ON COLUMN "ai_avatar_valid"."image_url" IS 'new comment'`,
+			wantAbsent: []string{"ALTER COLUMN"},
+		},
+		{
+			name:       "postgres_delete_comment_from_target",
+			direction:  "apply_to_target",
+			dialect:    "postgres",
+			source:     colPtrWithComment("image_url", "text", false, ""),
+			target:     colPtrWithComment("image_url", "text", false, "obsolete"),
+			want:       `COMMENT ON COLUMN "ai_avatar_valid"."image_url" IS NULL`,
+			wantAbsent: []string{"ALTER COLUMN"},
+		},
+		{
+			name:       "postgres_delete_comment_from_source",
+			direction:  "apply_to_source",
+			dialect:    "postgres",
+			source:     colPtrWithComment("image_url", "text", false, "obsolete"),
+			target:     colPtrWithComment("image_url", "text", false, ""),
+			want:       `COMMENT ON COLUMN "ai_avatar_valid"."image_url" IS NULL`,
+			wantAbsent: []string{"ALTER COLUMN"},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := &diff.DiffResult{Tables: []diff.TableDiff{{
+				Name:   "ai_avatar_valid",
+				Change: diff.Modified,
+				Columns: []diff.ColumnDiff{{
+					Name:   "image_url",
+					Change: diff.Modified,
+					Source: tt.source,
+					Target: tt.target,
+				}},
+			}}}
+
+			got, err := GenerateFiltered(result, Selection{
+				Tables:  []string{"ai_avatar_valid"},
+				Columns: map[string][]string{"ai_avatar_valid": {"image_url"}},
+			}, tt.direction, tt.dialect)
+			if err != nil {
+				t.Fatalf("GenerateFiltered returned error: %v", err)
+			}
+			mustContain(t, got, []string{tt.want})
 			mustNotContain(t, got, tt.wantAbsent)
 		})
 	}
